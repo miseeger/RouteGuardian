@@ -9,17 +9,13 @@ namespace RouteGuardian.Web.Controllers
         [HttpGet("Run")]
         public ActionResult Run() 
         {
-            var tests = new RouteGuardianTests();
-            tests.Run();
-            
-            return Ok("Okay");
+            return Ok("And I ran!");
         }
 
         [HttpGet("Test")]
         public ActionResult Test() 
         {
-
-            return Ok("Okay");
+            return Ok("Tested!");
         }
     }
 
