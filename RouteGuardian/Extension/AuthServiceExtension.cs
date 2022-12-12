@@ -8,6 +8,9 @@ namespace RouteGuardian.Extension
 {
     public static class AuthServiceExtension
     {
+        //References:
+        //- https://www.infoworld.com/article/3669188/how-to-implement-jwt-authentication-in-aspnet-core-6.html
+
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration config)
         {
             var jwtHelper = new JwtHelper(config);
@@ -23,11 +26,14 @@ namespace RouteGuardian.Extension
                 {
                     options.TokenValidationParameters = jwtHelper.GetTokenValidationParameters();
                 });
+            
             services.AddSingleton<IJwtHelper>(jwtHelper);
         }
 
-        public static void AddWindowsAuthentication(this IServiceCollection services)
+        public static void AddWindowsAuthentication(this IServiceCollection services, IConfiguration config)
         {
+            var winHelper = new WinHelper(config);
+
             services
                 .AddAuthentication(NegotiateDefaults.AuthenticationScheme)
                 .AddNegotiate();
@@ -37,6 +43,8 @@ namespace RouteGuardian.Extension
                 {
                     options.FallbackPolicy = options.DefaultPolicy;
                 });
+
+            services.AddSingleton<IWinHelper>(winHelper);
         }
     }
 }

@@ -7,24 +7,14 @@ namespace RouteGuardian
 {
     public class RouteGuardian
     {
-        private GuardPolicy _defaultPolicy;
-        public GuardPolicy Policy
-        {
-            get { return _defaultPolicy; }
-            set { _defaultPolicy = value; }
-        }
+        public GuardPolicy Policy { get; set; }
+        public List<GuardRule> Rules { get; }
 
-        private List<GuardRule> _rules;
-        public List<GuardRule> Rules
-        {
-            get { return _rules; }
-        }
-               
 
         public RouteGuardian(string accessFileName = "")
         {  
-            _defaultPolicy = GuardPolicy.Deny;
-            _rules = new List<GuardRule>();
+            Policy = GuardPolicy.Deny;
+            Rules = new List<GuardRule>();
 
             if (accessFileName != string.Empty)
             {
@@ -46,15 +36,15 @@ namespace RouteGuardian
                 if (access != null)
                 {
                     Clear();
-                    DefaultPolicy(access.Default == "allow" ? GuardPolicy.Allow : GuardPolicy.Deny);
+                    DefaultPolicy(access.Default == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny);
 
                     foreach (var rule in access.Rules)
                     {
-                        var splitRule = rule.Split(' ');
+                        var splitRule = rule.Split(Const.SeparatorSpace);
                         try
                         {
-                        Rule(splitRule[0].ToLower() == "allow" ? GuardPolicy.Allow : GuardPolicy.Deny,
-                            splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());                            
+                            Rule(splitRule[0].ToLower() == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny,
+                                splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());                            
                         }
                         catch (Exception)
                         {
@@ -65,36 +55,34 @@ namespace RouteGuardian
             }
         }
 
-        public RouteGuardian DefaultPolicy(GuardPolicy dflt)
+        public RouteGuardian DefaultPolicy(GuardPolicy defaultPolicy)
         {
-            _defaultPolicy = dflt;
+            Policy = defaultPolicy;
             return this;
         }
 
         public RouteGuardian Clear()
         {
-            _rules.Clear();
+            Rules.Clear();
             return this;
         }
 
         public RouteGuardian Rule (GuardPolicy policy, string verbs, string path, string subjects)
         {
-            var httpVerbs = "GET|HEAD|POST|PUT|PATCH|DELETE|CONNECT".Split('|');
-            var verbsPos = verbs.Split('|');
-            
-            var subs = subjects.ToUpper().Split('|');
+            var verbsPos = verbs.Split(Const.SeparatorPipe);
+            var subs = subjects.ToUpper().Split(Const.SeparatorPipe);
 
             if (!subs.Any())
             {
-                subs.Append("*");
+                subs.Append(Const.WildCard);
             }
 
-            if (!verbsPos.Any() || verbsPos[0] == "*")
+            if (!verbsPos.Any() || verbsPos[0] == Const.WildCard)
             {
-                verbsPos = httpVerbs;
+                verbsPos = Const.HttpVerbs; ;
             }
 
-            var verbsNeg = httpVerbs
+            var verbsNeg = Const.HttpVerbs
                 .Where(v => verbsPos.All(vp => vp != v))
                 .ToList();
 
@@ -103,7 +91,7 @@ namespace RouteGuardian
                 // alle gegebenen Verben mit der angegebene Policy eintragen
                 foreach (var verb in verbsPos)
                 {
-                    _rules.Add(new GuardRule
+                    Rules.Add(new GuardRule
                     {
                         Policy = policy,
                         Verb = verb,
@@ -116,7 +104,7 @@ namespace RouteGuardian
                 // alle nicht gegebenen Verben mit der umgekehrten Policy eintragen
                 foreach (var verb in verbsNeg)
                 {
-                    _rules.Add(new GuardRule
+                    Rules.Add(new GuardRule
                     {
                         Policy = policy == GuardPolicy.Allow ? GuardPolicy.Deny : GuardPolicy.Allow,
                         Verb = verb,
@@ -141,16 +129,16 @@ namespace RouteGuardian
             return this;
         }
 
-        public bool isGranted(string verb, string path, string subjects = "ANONYMOUS")
-         {
+        public bool isGranted(string verb, string path, string subjects = Const.AnonymousRoleName)
+        {
             if (verb == string.Empty)
             {
                 return false;
             }
 
-            var rulesToMatch = _rules
+            var rulesToMatch = Rules
                 .Where(r => r.Verb == verb.ToUpper()
-                    && (subjects.ToUpper().Contains(r.Subject) || r.Subject == "*")
+                    && (subjects.ToUpper().Split(Const.SeparatorPipe).Contains(r.Subject) || r.Subject == Const.WildCard)
                 )
                 .ToList();
 
@@ -160,9 +148,9 @@ namespace RouteGuardian
             foreach (var rule in rulesToMatch)
             {
                 var pathPattern = rule.Path
-                    .Replace("{num}", @"\d*")
-                    .Replace("{str}", @"\w+")
-                    .Replace("*", @"[\/?\w+]*");
+                    .Replace(Const.NumericWildCard, Const.NumericWildCardRegEx)
+                    .Replace(Const.AlphaNumericWildCard, Const.AlphaNumericWildCardRegEx)
+                    .Replace(Const.WildCard, Const.WildCardRegEx);
 
                 if (Regex.Match(path, $"^{pathPattern}$").Success)
                 {
@@ -172,12 +160,12 @@ namespace RouteGuardian
 
             if (!matchingRules.Any())
             {
-                return _defaultPolicy == GuardPolicy.Allow;
+                return Policy == GuardPolicy.Allow;
             }
 
-            var access = _defaultPolicy;
+            var access = Policy;
             var individualMatchingRules = matchingRules.Where(r => subjects.Contains(r.Subject)).ToList();
-            var wildcardMatchingRules = matchingRules.Where(r => r.Subject == "*").ToList();
+            var wildcardMatchingRules = matchingRules.Where(r => r.Subject == Const.WildCard).ToList();
 
             // sobald matchingRules für eines der Subjects da sind, weden diese vorrangig behandelt:
             if (individualMatchingRules.Any())
@@ -201,11 +189,11 @@ namespace RouteGuardian
                     return accessWc;
                 }
 
-                return _defaultPolicy == GuardPolicy.Allow; 
+                return Policy == GuardPolicy.Allow; 
             }
         }
 
-        public bool Authorize(HttpContext context, string subjects = "ANONYMOUS",
+        public bool Authorize(HttpContext context, string subjects = Const.AnonymousRoleName,
             Action<string, string>? onDeny = null)
         {
             var path = context.Request.Path.Value!;

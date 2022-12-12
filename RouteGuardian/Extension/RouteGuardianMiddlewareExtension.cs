@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
-using RouteGuardian;
+using RouteGuardian.Middleware;
+using RouteGuardian.Middleware.Authorization;
 
 namespace RouteGuardian.Extension
 {
@@ -11,9 +12,15 @@ namespace RouteGuardian.Extension
             return app;
         }
 
-        public static IApplicationBuilder AuthorizeRouteGuardian(this IApplicationBuilder app)
+        public static IApplicationBuilder UseRouteGuardianJwtAuthorization(this IApplicationBuilder app)
         {
-            app.UseMiddleware<AuthorizeRouteGuardianMiddleware>();
+            app.UseMiddleware<RouteGuardianJwtAuthorizationMiddleware>();
+            return app;
+        }
+
+        public static IApplicationBuilder UseRouteGuardianWinAuthorization(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<RouteGuardianWinAuthorizationMiddleware>();
             return app;
         }
     }

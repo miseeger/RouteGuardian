@@ -8,6 +8,10 @@ namespace RouteGuardian.Helper
 {
     public class JwtHelper: IJwtHelper
     {
+        // References:
+        // - https://dotnetcoretutorials.com/2020/01/15/creating-and-validating-jwt-tokens-in-asp-net-core/
+        // - https://developer.okta.com/blog/2019/06/26/decode-jwt-in-csharp-for-authorization
+
         private readonly IConfiguration _config;
 
         public JwtHelper(IConfiguration config)
@@ -18,7 +22,7 @@ namespace RouteGuardian.Helper
 
         public TokenValidationParameters GetTokenValidationParameters()
         {
-            var jwtSettings = _config.GetSection("JwtAuthentication");
+            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
             var secretKey = Environment.GetEnvironmentVariable(jwtSettings["ApiSecretEnVarName"]);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
@@ -54,9 +58,9 @@ namespace RouteGuardian.Helper
 
         public bool ValidateToken(string authToken)
         {
-            if (authToken.StartsWith("Bearer "))
+            if (authToken.StartsWith(Const.BearerTokenPrefix))
             {
-                authToken = authToken.Replace("Bearer ", string.Empty);
+                authToken = authToken.Replace(Const.BearerTokenPrefix, string.Empty);
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -76,11 +80,9 @@ namespace RouteGuardian.Helper
 
         public JwtSecurityToken? ReadToken(string authToken)
         {
-            // Info: https://developer.okta.com/blog/2019/06/26/decode-jwt-in-csharp-for-authorization
-
             var jwtSecHandler = new JwtSecurityTokenHandler();
 
-            authToken = authToken.Replace("Bearer ", "");
+            authToken = authToken.Replace(Const.BearerTokenPrefix, string.Empty);
 
             return ValidateToken(authToken)
                 ? jwtSecHandler.ReadJwtToken(authToken)
