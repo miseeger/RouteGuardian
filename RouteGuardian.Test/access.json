@@ -1,0 +1,11 @@
+{
+  "default": "deny",
+  "rules": [
+    "allow GET /foo/bar/admin ADMIN|PROD",
+    "deny POST /foo/bar/admin *",
+    "allow * /admin ADMIN|PROD",
+    "deny * /admin/part2 *",
+    "allow GET /api/test/test ADMIN",
+    "deny GET /api/test/xyz ADMIN"
+  ] 
+}
