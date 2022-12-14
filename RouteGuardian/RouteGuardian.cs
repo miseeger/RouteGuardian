@@ -12,7 +12,7 @@ namespace RouteGuardian
 
 
         public RouteGuardian(string accessFileName = "")
-        {  
+        {
             Policy = GuardPolicy.Deny;
             Rules = new List<GuardRule>();
 
@@ -44,7 +44,7 @@ namespace RouteGuardian
                         try
                         {
                             Rule(splitRule[0].ToLower() == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny,
-                                splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());                            
+                                splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());
                         }
                         catch (Exception)
                         {
@@ -67,7 +67,7 @@ namespace RouteGuardian
             return this;
         }
 
-        public RouteGuardian Rule (GuardPolicy policy, string verbs, string path, string subjects)
+        public RouteGuardian Rule(GuardPolicy policy, string verbs, string path, string subjects)
         {
             var verbsPos = verbs.Split(Const.SeparatorPipe);
             var subs = subjects.ToUpper().Split(Const.SeparatorPipe);
@@ -113,17 +113,17 @@ namespace RouteGuardian
                     });
                 }
             }
-            
+
             return this;
         }
 
-        public RouteGuardian Allow (string verbs, string path, string subjects)
+        public RouteGuardian Allow(string verbs, string path, string subjects)
         {
             Rule(GuardPolicy.Allow, verbs, path, subjects);
             return this;
         }
 
-        public RouteGuardian Deny(string verbs, string path, string subjects) 
+        public RouteGuardian Deny(string verbs, string path, string subjects)
         {
             Rule(GuardPolicy.Deny, verbs, path, subjects);
             return this;
@@ -182,14 +182,14 @@ namespace RouteGuardian
                 // wildcardMatchingRules geprüft:
                 if (wildcardMatchingRules.Any())
                 {
-                    var accessWc = 
+                    var accessWc =
                     (wildcardMatchingRules.Any(r => r.Policy == GuardPolicy.Allow)
                         ? GuardPolicy.Allow
                         : GuardPolicy.Deny) == GuardPolicy.Allow;
                     return accessWc;
                 }
 
-                return Policy == GuardPolicy.Allow; 
+                return Policy == GuardPolicy.Allow;
             }
         }
 
@@ -207,7 +207,7 @@ namespace RouteGuardian
                 }
 
                 return false;
-            } 
+            }
 
             return true;
         }
