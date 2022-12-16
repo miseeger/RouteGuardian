@@ -32,7 +32,7 @@ namespace RouteGuardian.Extension
 
         public static void AddWindowsAuthentication(this IServiceCollection services, IConfiguration config)
         {
-            var winHelper = new WinHelper(config);
+            var winHelper = new WinHelper();
 
             services
                 .AddAuthentication(NegotiateDefaults.AuthenticationScheme)
