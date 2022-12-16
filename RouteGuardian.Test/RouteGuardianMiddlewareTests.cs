@@ -1,11 +1,5 @@
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using RouteGuardian.Model;
 using System.Security.Claims;
-using System.Security.Principal;
 using Moq;
 using RouteGuardian.Middleware;
 
@@ -53,7 +47,57 @@ namespace RouteGuardian.Test
         }
 
         [TestMethod]
-        public async Task ShouldReturnUnauthorizedIfUserAccessIsDenied()
+        public async Task ShouldInvokeNextMiddlewareIfPathIsNotGuarded()
+        {
+            // Arrange
+            var context = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(null, "FakeAuthTypeToAuthenticateUser")),
+                Request =
+                {
+                    Path = "/foo"
+                }
+            };
+
+            var nextMock = new Mock<RequestDelegate>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
+
+            // --- Act
+            await middleware.Invoke(context);
+
+            // --- Assert
+            nextMock.Verify(n => n.Invoke(context), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ShouldInvokeNextMiddlewareIfUserAccessForGuardedPathIsAllowed()
+        {
+            // Arrange
+            var context = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Role, "ADMIN")
+                }, "FakeAuthTypeToAuthenticateUser")),
+                Request =
+                {
+                    Method = "GET",
+                    Path = "/api/test/test"
+                }
+            };
+
+            var nextMock = new Mock<RequestDelegate>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
+
+            // --- Act
+            await middleware.Invoke(context);
+
+            // --- Assert
+            nextMock.Verify(n => n.Invoke(context), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ShouldReturnUnauthorizedIfUserAccessForGuardedPathIsDenied()
         {
             // Arrange
             var context = new DefaultHttpContext
@@ -69,11 +113,12 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object,"/api");
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
 
             // --- Act
             await middleware.Invoke(context);
 
+            // --- Assert
             Assert.AreEqual(401, context.Response.StatusCode);
         }
     }

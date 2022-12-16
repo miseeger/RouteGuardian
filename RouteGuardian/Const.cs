@@ -10,6 +10,9 @@
         public const string BearerTokenPrefix = "Bearer ";
         public const string NtlmTokenPrefix = "Negotiation ";
         public const string JwtClaimTypeRole = "rol";
+        public const string JwtClaimTypeIssuedAt = "iat";
+        public const string JwtClaimTypeUsername = "name";
+        public const string JwtClaimTypeUserId = "sub";
         public const string JwtDbLookupRole = "DB^";
         public const string AnonymousRoleName = "ANONYMOUS";
         public const string WildCard = "*";
@@ -19,7 +22,8 @@
         public const string AlphaNumericWildCard = "{str}";
         public const string AlphaNumericWildCardRegEx = @"\w+";
         public static readonly string[] HttpVerbs = {"GET","HEAD","POST","PUT","PATCH","DELETE","CONNECT"};
+        public const string SetReigsterAdditionalGroupsFromDb= "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
 
-        public const string SetRegisterGroupsAsRoles = "RouteGuardian:WinAuthentication:RegisterGroupsAsRoles";
+
     }
 }

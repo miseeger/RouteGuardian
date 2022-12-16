@@ -24,13 +24,14 @@ namespace RouteGuardian.Middleware.Authorization
 
             if (authHeader != string.Empty && authHeader.StartsWith("Negotiate "))
             {
-                if (_config[Const.SetRegisterGroupsAsRoles].ToLower() == "true")
-                {
-                    _winHelper!.RegisterGroupsAsRoleClaims(context);
-                }
+                _winHelper!.RegisterGroupsAsRoleClaims(context);
 
-                //TODO: Zusätzlich Rollen des Users aus der Datenbank ermitteln und als
-                //TODO: weitere Identity hinzufügen (void AddDbUserRoles(string userName))
+                //TODO ... maybe.
+                //if (_config[Const.SetReigsterAdditionalGroupsFromDb].ToLower() == "true")
+                //{
+                //    //Add additional Roles/Groups from a database and add them as
+                //    //an Identity to the user (void AddDbUserRoles(string userName))
+                //}
             }
 
             await _next(context);

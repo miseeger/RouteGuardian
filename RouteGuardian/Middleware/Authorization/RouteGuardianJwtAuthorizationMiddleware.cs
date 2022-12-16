@@ -16,41 +16,65 @@ namespace RouteGuardian.Middleware.Authorization
         }
 
 
+        private async Task ReturnForbidden(HttpContext context, string detail)
+        {
+            context.Response.StatusCode = 403;
+            //TODO: Log as warning
+            await context.Response.WriteAsync($"Forbidden - Authentication failed ({detail})!\r\n[{context.Request.Method}] " +
+                                              $"{context.Request.Path} <- {context.User.Identity!.Name}");
+        }
+
+
         public async Task Invoke(HttpContext context)
         {
             var authHeader = context.Request.Headers[Const.AuthHeader].ToString();
 
-            if (authHeader != string.Empty && authHeader.StartsWith(Const.BearerTokenPrefix))
+            if (context.User.Identity!.IsAuthenticated)
             {
-                var jwt = _jwtHelper!.ReadToken(authHeader);
-
-                if (jwt != null)
+                if (authHeader != string.Empty && authHeader.StartsWith(Const.BearerTokenPrefix))
                 {
-                    var roles = jwt.Claims
-                        .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value
-                        .Split(Const.SeparatorPipe);
+                    var jwt = _jwtHelper!.ReadToken(authHeader);
 
-                    if (roles.Any())
+                    if (jwt != null)
                     {
-                        var claims = roles
-                            .Where(r => r != Const.JwtDbLookupRole)
-                            .OrderBy(r => r)
-                            .Select(role => new Claim(ClaimTypes.Role, role.ToUpper()))
-                            .ToList();
+                        var roles = jwt.Claims
+                            .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value
+                            .Split(Const.SeparatorPipe);
 
-                        context.User.AddIdentity(new ClaimsIdentity(claims));
+                        if (roles.Any())
+                        {
+                            var claims = roles
+                                .Where(r => r != Const.JwtDbLookupRole)
+                                .OrderBy(r => r)
+                                .Select(role => new Claim(ClaimTypes.Role, role.ToUpper()))
+                                .ToList();
+
+                            context.User.AddIdentity(new ClaimsIdentity(claims));
+                        }
+
+                        //TODO ... maybe.
+                        //if (roles.Contains(Const.JwtDbLookupRole))
+                        //{
+                        //    //Add additional Roles/Groups from a database and add them as
+                        //    //an Identity to the user (void AddDbUserRoles(string userName))
+                        //}
+
+                        await _next(context);
                     }
-
-                    if (roles.Contains(Const.JwtDbLookupRole))
+                    else
                     {
-                        //TODO: Zusätzlich Rollen des Users aus der Datenbank ermitteln
-                        //      und als weitere Identity hinzufügen (void AddDbUserRoles(string userName))
-                        var userName = context.User.Identity!.Name;
+                        await ReturnForbidden(context, "invalid token");
                     }
                 }
+                else
+                {
+                    await ReturnForbidden(context, "not a bearer token");
+                }
             }
-
-            await _next(context);
+            else
+            {
+                await ReturnForbidden(context, "not authenticated");
+            }
         }
     }
 }

@@ -39,18 +39,36 @@ namespace RouteGuardian.Helper
             };
         }
 
-        public string GenerateToken(IEnumerable<Claim> clms, string key, 
-            string iss = "", string aud = "", string algo = SecurityAlgorithms.HmacSha256)
+        public string GenerateToken(List<Claim> claims, string key, 
+            string userName = "", string userId = "",
+            string issuer = "", string audience = "", int validForMinutes = 1440, 
+            string algorithm = SecurityAlgorithms.HmacSha256)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var credentials = new SigningCredentials(securityKey, algo);
+            var credentials = new SigningCredentials(securityKey, algorithm);
+
+            if (claims.All(c => c.Type != Const.JwtClaimTypeUserId) && userId != string.Empty)
+            {
+                claims!.Add(new Claim(Const.JwtClaimTypeUserId, userId));
+            }
+
+            if (claims.All(c => c.Type != Const.JwtClaimTypeUsername) && userName != string.Empty)
+            {
+                claims!.Add(new Claim(Const.JwtClaimTypeUsername, userName));
+            }
+            
+            if (claims.All(c => c.Type != Const.JwtClaimTypeIssuedAt))
+            {
+                claims.Add(new Claim(Const.JwtClaimTypeIssuedAt,
+                    ((DateTime.UtcNow.Ticks - 621355968000000000) / 10000000).ToString()));
+            }
 
             var secToken = new JwtSecurityToken(
                 signingCredentials: credentials,
-                issuer: iss,
-                audience: aud,
-                claims: clms,
-                expires: DateTime.UtcNow.AddDays(1));
+                issuer: issuer,
+                audience: audience,
+                claims: claims, 
+                expires: DateTime.UtcNow.AddMinutes(validForMinutes));
 
             var handler = new JwtSecurityTokenHandler();
             return handler.WriteToken(secToken);
@@ -58,10 +76,7 @@ namespace RouteGuardian.Helper
 
         public bool ValidateToken(string authToken)
         {
-            if (authToken.StartsWith(Const.BearerTokenPrefix))
-            {
-                authToken = authToken.Replace(Const.BearerTokenPrefix, string.Empty);
-            }
+            authToken = authToken.Replace(Const.BearerTokenPrefix, string.Empty);
 
             var tokenHandler = new JwtSecurityTokenHandler();
 

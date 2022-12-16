@@ -11,13 +11,6 @@ namespace RouteGuardian.Helper
         // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/windowsauth?view=aspnetcore-6.0&tabs=visual-studio#impersonation
         // https://stackoverflow.com/questions/34951713/aspnet5-windows-authentication-get-group-name-from-claims
 
-        private readonly IConfiguration _config;
-
-        public WinHelper(IConfiguration config)
-        {
-            _config = config;
-        }
-
         public void RegisterGroupsAsRoleClaims(HttpContext context)
         {
             var groups = new List<string>();

@@ -16,6 +16,7 @@ namespace RouteGuardian.Middleware
             _guardedPath = guardedPath;
         }
 
+
         private async Task ReturnUnauthorized(HttpContext context, string subjects)
         {
             context.Response.StatusCode = 401;
@@ -29,23 +30,10 @@ namespace RouteGuardian.Middleware
         {
             context.Response.StatusCode = 403;
             //TODO: Log as warning
-            await context.Response.WriteAsync($"Forbidden - Authentication failed!\r\n[{context.Request.Method}] " +
+            await context.Response.WriteAsync($"Forbidden - Authentication failed (not authenticated)!\r\n[{context.Request.Method}] " +
                                               $"{context.Request.Path} <- {context.User.Identity!.Name}");
         }
 
-        //public List<Claim> GetUserRoles(ClaimsPrincipal user)
-        //{
-        //    var roles = new List<Claim>();
-
-        //    foreach (var identity in user.Identities)
-        //    {
-        //        roles.AddRange(identity.Claims
-        //            .Where(c => c.Type == ClaimTypes.Role)
-        //            .ToList());
-        //    }
-
-        //    return roles;
-        //}
 
         public async Task Invoke(HttpContext context)
         {
@@ -55,7 +43,6 @@ namespace RouteGuardian.Middleware
                 {
                     if (context.User.Claims.Any())
                     {
-                        //var roles = GetUserRoles(context.User);
                         var roles = context.User.Claims
                             .Where(c => c.Type == ClaimTypes.Role)
                             .ToList();
