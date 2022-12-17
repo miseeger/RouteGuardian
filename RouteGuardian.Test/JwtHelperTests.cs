@@ -9,7 +9,7 @@ namespace RouteGuardian.Test
     public class JwtHelperTests
     {
         private static IConfiguration _config;
-        private static JwtHelper _jwtHelper;
+        private static IJwtHelper _jwtHelper;
         private static string _secretKey;
 
         [ClassInitialize]

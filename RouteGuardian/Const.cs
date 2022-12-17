@@ -8,6 +8,7 @@
         public const string Deny = "deny";
         public const string AuthHeader = "Authorization";
         public const string BearerTokenPrefix = "Bearer ";
+        public const string NegotiateTokenPrefix = "Negotiate ";
         public const string NtlmTokenPrefix = "Negotiation ";
         public const string JwtClaimTypeRole = "rol";
         public const string JwtClaimTypeIssuedAt = "iat";

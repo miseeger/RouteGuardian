@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using RouteGuardian.Helper;
 
 namespace RouteGuardian.Middleware.Authorization
@@ -8,20 +9,26 @@ namespace RouteGuardian.Middleware.Authorization
     {
         private readonly RequestDelegate _next;
         private readonly IJwtHelper _jwtHelper;
+        private readonly ILogger<RouteGuardianJwtAuthorizationMiddleware> _logger;
 
-        public RouteGuardianJwtAuthorizationMiddleware(RequestDelegate next, IJwtHelper jwtHelper)
+        public RouteGuardianJwtAuthorizationMiddleware(RequestDelegate next, IJwtHelper jwtHelper, 
+            ILogger<RouteGuardianJwtAuthorizationMiddleware> logger)
         {
             _next = next;
             _jwtHelper = jwtHelper;
+            _logger = logger;
         }
 
 
         private async Task ReturnForbidden(HttpContext context, string detail)
         {
+            var message = $"Forbidden - Authentication failed ({detail})!\r\n[{context.Request.Method}] " +
+                          $"{context.Request.Path} <- {context.User.Identity!.Name}";
+
+            _logger.LogWarning(message);
+
             context.Response.StatusCode = 403;
-            //TODO: Log as warning
-            await context.Response.WriteAsync($"Forbidden - Authentication failed ({detail})!\r\n[{context.Request.Method}] " +
-                                              $"{context.Request.Path} <- {context.User.Identity!.Name}");
+            await context.Response.WriteAsync(message);
         }
 
 

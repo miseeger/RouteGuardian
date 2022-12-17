@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Moq;
 using RouteGuardian.Middleware;
+using Microsoft.Extensions.Logging;
 
 namespace RouteGuardian.Test
 {
@@ -18,7 +19,8 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object);
+            var loggerMock = new Mock<ILogger<RouteGuardianMiddleware>>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, loggerMock.Object);
 
             // --- Act
             await middleware.Invoke(context);
@@ -37,7 +39,8 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object);
+            var loggerMock = new Mock<ILogger<RouteGuardianMiddleware>>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, loggerMock.Object);
 
             // --- Act
             await middleware.Invoke(context);
@@ -60,7 +63,8 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
+            var loggerMock = new Mock<ILogger<RouteGuardianMiddleware>>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, loggerMock.Object, "/api");
 
             // --- Act
             await middleware.Invoke(context);
@@ -87,7 +91,8 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
+            var loggerMock = new Mock<ILogger<RouteGuardianMiddleware>>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, loggerMock.Object, "/api");
 
             // --- Act
             await middleware.Invoke(context);
@@ -113,7 +118,8 @@ namespace RouteGuardian.Test
             };
 
             var nextMock = new Mock<RequestDelegate>();
-            var middleware = new RouteGuardianMiddleware(nextMock.Object, "/api");
+            var loggerMock = new Mock<ILogger<RouteGuardianMiddleware>>();
+            var middleware = new RouteGuardianMiddleware(nextMock.Object, loggerMock.Object, "/api");
 
             // --- Act
             await middleware.Invoke(context);

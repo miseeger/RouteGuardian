@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace RouteGuardian.Middleware
 {
@@ -8,30 +9,37 @@ namespace RouteGuardian.Middleware
         private readonly RequestDelegate _next;
         private readonly RouteGuardian _routeGuardian;
         private string _guardedPath;
+        private readonly ILogger<RouteGuardianMiddleware> _logger;
 
-        public RouteGuardianMiddleware(RequestDelegate next, string guardedPath = "")
+        public RouteGuardianMiddleware(RequestDelegate next, ILogger<RouteGuardianMiddleware> logger, 
+            string guardedPath = "")
         {
             _next = next;
             _routeGuardian = new RouteGuardian("access.json");
             _guardedPath = guardedPath;
+            _logger = logger;
         }
 
 
         private async Task ReturnUnauthorized(HttpContext context, string subjects)
         {
+            var message = $"Unauthorized - Access denied!\r\n[{context.Request.Method}] " +
+                          $"{context.Request.Path} <- {context.User.Identity!.Name} " +
+                          $"With roles {(subjects == string.Empty ? "missing!" : subjects)}";
+            _logger.LogWarning(message);
+
             context.Response.StatusCode = 401;
-            //TODO: Log as warning
-            await context.Response.WriteAsync($"Unauthorized - Access denied!\r\n[{context.Request.Method}] " +
-                                              $"{context.Request.Path} <- {context.User.Identity!.Name} " +
-                                              $"With roles {(subjects == string.Empty ? "missing!" : subjects)}");
+            await context.Response.WriteAsync(message);
         }
 
         private async Task ReturnForbidden(HttpContext context)
         {
+            var message = $"Forbidden - Authentication failed (not authenticated)!\r\n[{context.Request.Method}] " +
+                          $"{context.Request.Path} <- {context.User.Identity!.Name}";
+            _logger.LogWarning(message);
+
             context.Response.StatusCode = 403;
-            //TODO: Log as warning
-            await context.Response.WriteAsync($"Forbidden - Authentication failed (not authenticated)!\r\n[{context.Request.Method}] " +
-                                              $"{context.Request.Path} <- {context.User.Identity!.Name}");
+            await context.Response.WriteAsync(message);
         }
 
 

@@ -30,7 +30,7 @@ namespace RouteGuardian.Extension
             services.AddSingleton<IJwtHelper>(jwtHelper);
         }
 
-        public static void AddWindowsAuthentication(this IServiceCollection services, IConfiguration config)
+        public static void AddWindowsAuthentication(this IServiceCollection services)
         {
             var winHelper = new WinHelper();
 

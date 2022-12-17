@@ -20,9 +20,9 @@ namespace RouteGuardian.Middleware.Authorization
 
         public async Task Invoke(HttpContext context)
         {
-            var authHeader = context.Request.Headers["Authorization"].ToString();
+            var authHeader = context.Request.Headers[Const.AuthHeader].ToString();
 
-            if (authHeader != string.Empty && authHeader.StartsWith("Negotiate "))
+            if (authHeader != string.Empty && authHeader.StartsWith(Const.NegotiateTokenPrefix))
             {
                 _winHelper!.RegisterGroupsAsRoleClaims(context);
 
