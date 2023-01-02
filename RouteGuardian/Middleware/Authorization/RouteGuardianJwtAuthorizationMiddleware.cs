@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RouteGuardian.Helper;
 
@@ -11,7 +12,7 @@ namespace RouteGuardian.Middleware.Authorization
         private readonly IJwtHelper _jwtHelper;
         private readonly ILogger<RouteGuardianJwtAuthorizationMiddleware> _logger;
 
-        public RouteGuardianJwtAuthorizationMiddleware(RequestDelegate next, IJwtHelper jwtHelper, 
+        public RouteGuardianJwtAuthorizationMiddleware(RequestDelegate next, IJwtHelper jwtHelper,
             ILogger<RouteGuardianJwtAuthorizationMiddleware> logger)
         {
             _next = next;
@@ -31,8 +32,8 @@ namespace RouteGuardian.Middleware.Authorization
             await context.Response.WriteAsync(message);
         }
 
-
-        public async Task Invoke(HttpContext context)
+        //Inject Service into Middleware: https://stackoverflow.com/a/52204074
+        public async Task Invoke(HttpContext context, IServiceProvider services)
         {
             var authHeader = context.Request.Headers[Const.AuthHeader].ToString();
 
@@ -40,13 +41,32 @@ namespace RouteGuardian.Middleware.Authorization
             {
                 if (authHeader != string.Empty && authHeader.StartsWith(Const.BearerTokenPrefix))
                 {
+                    var userId = string.Empty;
                     var jwt = _jwtHelper!.ReadToken(authHeader);
 
                     if (jwt != null)
                     {
+                        IRouteGuardianRoleLookup? roleLookup = services.GetService<IRouteGuardianRoleLookup>();
+
                         var roles = jwt.Claims
                             .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value
-                            .Split(Const.SeparatorPipe);
+                            .Split(Const.SeparatorPipe)
+                        .ToList();
+                        
+                        try
+                        {
+                            // Lookup additional roles for the authenticated user
+                            if (roles.Contains(Const.JwtDbLookupRole) && roleLookup != null)
+                            {
+                                userId = jwt.Claims.FirstOrDefault(c => c.Type == Const.JwtClaimTypeUserId)!.Value;
+                                var lookupRoles = await roleLookup.LookupRolesAsync(userId);
+                                roles.AddRange(lookupRoles.Split(Const.SeparatorPipe).ToList());
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError($"Problem when looking up additional roles for user {userId}: {e.Message} - Pipeline continues!");
+                        }
 
                         if (roles.Any())
                         {
@@ -58,13 +78,6 @@ namespace RouteGuardian.Middleware.Authorization
 
                             context.User.AddIdentity(new ClaimsIdentity(claims));
                         }
-
-                        //TODO ... maybe.
-                        //if (roles.Contains(Const.JwtDbLookupRole))
-                        //{
-                        //    //Add additional Roles/Groups from a database and add them as
-                        //    //an Identity to the user (void AddDbUserRoles(string userName))
-                        //}
 
                         await _next(context);
                     }
