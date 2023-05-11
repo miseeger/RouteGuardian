@@ -61,7 +61,7 @@ namespace RouteGuardian.Middleware
                                 .Select(c => c.Value.ToString())
                                 .Aggregate((c1, c2) => $"{c1}|{c2}");
 
-                            if (_routeGuardian.isGranted(context.Request.Method, context.Request.Path, subjects))
+                            if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects))
                             {
                                 await _next(context);
                             }

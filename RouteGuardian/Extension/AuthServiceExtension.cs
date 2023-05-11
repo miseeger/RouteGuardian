@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RouteGuardian.Helper;
+using RouteGuardian.Policy;
 
 namespace RouteGuardian.Extension
 {
@@ -45,6 +47,23 @@ namespace RouteGuardian.Extension
                 });
 
             services.AddSingleton<IWinHelper>(winHelper);
+        }
+        
+        public static void AddRouteGuardianPolicy(this IServiceCollection services, string accessFileName)
+        {
+            var routeGuardian = new RouteGuardian(accessFileName);
+            services.AddSingleton(routeGuardian);
+
+            services.AddAuthorization(builder =>
+            {
+                builder.AddPolicy("RouteGuardian", pBuilder => pBuilder
+                    .RequireAuthenticatedUser()
+                    // .AddAuthenticationSchemes(NegotiateDefaults.AuthenticationScheme) // ??? idk if actually needed ???
+                    .AddRequirements(new RouteGuardianPolicy.Requirement())
+                );
+            });
+
+            services.AddSingleton<IAuthorizationHandler, RouteGuardianPolicy.AuthorizationHandler>();
         }
     }
 }

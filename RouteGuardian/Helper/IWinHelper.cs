@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Principal;
+using Microsoft.AspNetCore.Http;
 
 namespace RouteGuardian.Helper
 {
     public interface IWinHelper
     {
-        void RegisterGroupsAsRoleClaims(HttpContext context);
+        string GetWinUserGroupsHash(WindowsIdentity identity);
+        void RegisterWinUserGroupsAsRoleClaims(HttpContext context);
     }
 }

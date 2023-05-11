@@ -129,7 +129,7 @@ namespace RouteGuardian
             return this;
         }
 
-        public bool isGranted(string verb, string path, string subjects = Const.AnonymousRoleName)
+        public bool IsGranted(string verb, string path, string subjects = Const.AnonymousRoleName)
         {
             if (verb == string.Empty)
             {
@@ -198,7 +198,7 @@ namespace RouteGuardian
         {
             var path = context.Request.Path.Value!;
 
-            if (!isGranted(context.Request.Method, path, subjects))
+            if (!IsGranted(context.Request.Method, path, subjects))
             {
                 if (onDeny != null)
                 {

@@ -24,7 +24,7 @@ namespace RouteGuardian.Middleware.Authorization
 
             if (authHeader != string.Empty && authHeader.StartsWith(Const.NegotiateTokenPrefix))
             {
-                _winHelper!.RegisterGroupsAsRoleClaims(context);
+                _winHelper!.RegisterWinUserGroupsAsRoleClaims(context);
 
                 //TODO ... maybe.
                 //if (_config[Const.SetReigsterAdditionalGroupsFromDb].ToLower() == "true")

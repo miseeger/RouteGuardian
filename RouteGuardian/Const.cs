@@ -10,6 +10,7 @@
         public const string BearerTokenPrefix = "Bearer ";
         public const string NegotiateTokenPrefix = "Negotiate ";
         public const string NtlmTokenPrefix = "Negotiation ";
+        public const string Ntlm = "NTLM";
         public const string JwtClaimTypeRole = "rol";
         public const string JwtClaimTypeIssuedAt = "iat";
         public const string JwtClaimTypeUsername = "name";
