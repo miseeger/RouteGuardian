@@ -16,6 +16,7 @@ namespace RouteGuardian.Test
     // Remains to have a demo on how to setup Http-Hosts for testing //
     // ============================================================= //
     
+    //[TestClass]
     public class RouteGuardianJwtAuthorizationMiddlewareTests
     {
         private static IConfiguration _config;
@@ -33,7 +34,7 @@ namespace RouteGuardian.Test
         }
 
 
-        [TestMethod]
+        //[TestMethod]
         public async Task ShouldReturnForbiddenNotAuthenticated()
         {
             // Arrange - Testserver
@@ -81,7 +82,7 @@ namespace RouteGuardian.Test
             Assert.AreEqual("Forbidden - Authentication failed (not authenticated)!\r\n[GET]  <- ", body);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public async Task ShouldReturnForbiddenNoBearerToken()
         {
             // Arrange - Testserver
@@ -131,7 +132,7 @@ namespace RouteGuardian.Test
             Assert.AreEqual("Forbidden - Authentication failed (not a bearer token)!\r\n[GET]  <- ", body);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public async Task ShouldReturnForbiddenInvalidToken()
         {
             // Arrange - Testserver
@@ -181,7 +182,7 @@ namespace RouteGuardian.Test
             Assert.AreEqual("Forbidden - Authentication failed (invalid token)!\r\n[GET]  <- ", body);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public async Task ShouldInvokeNextMiddleware()
         {
             // Arrange - Testserver

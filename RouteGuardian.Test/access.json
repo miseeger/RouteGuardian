@@ -6,6 +6,7 @@
     "allow * /admin ADMIN|PROD",
     "deny * /admin/part2 *",
     "allow GET /api/test/test ADMIN",
+    "allow GET /api/foo PROD",
     "deny GET /api/test/xyz ADMIN"
   ] 
 }

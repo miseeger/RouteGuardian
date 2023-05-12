@@ -58,22 +58,23 @@ namespace RouteGuardian.Middleware
                 {
                     var request = context.Request!;
                     var authHeader = request.Headers[Const.AuthHeader].ToString();
+                    var user = context.User;
                     
-                    if ((authHeader.StartsWith(Const.BearerTokenPrefix) && !string.IsNullOrEmpty(authHeader))
-                        || context.User.Identity!.AuthenticationType == Const.Ntlm)
+                    if (user.Identity!.AuthenticationType == Const.Ntlm  
+                        || (user.Identity!.AuthenticationType != Const.Ntlm && !string.IsNullOrEmpty(authHeader)))
                     {
                         var subjects = string.Empty;
                         
                         if (authHeader.StartsWith(Const.BearerTokenPrefix))
                             subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
 
-                        if (context.User.Identity!.AuthenticationType == Const.Ntlm)
+                        if (user.Identity!.AuthenticationType == Const.Ntlm)
                             subjects = _winHelper.GetSubjectsFromWinUserGroups(context);
                         
-                        if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects))
+                        if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects!))
                             await _next(context);
                         else
-                            await ReturnUnauthorized(context, subjects);
+                            await ReturnUnauthorized(context, subjects!);
                     }
                     else
                         await ReturnUnauthorized(context, string.Empty);

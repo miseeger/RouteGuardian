@@ -36,14 +36,17 @@ public class RouteGuardianPolicy
         {
             var httpContext = _httpContextAccessor?.HttpContext;
 
-            if (!context.User.Identity!.IsAuthenticated) 
+            if (!context.User.Identity!.IsAuthenticated)
+            {
+                context.Fail();
                 return Task.CompletedTask;
-            
-            var request = httpContext.Request;
+            } 
+          
+            var request = httpContext!.Request;
             var authHeader = request.Headers[Const.AuthHeader].ToString();
             var subjects = string.Empty;
 
-            if (authHeader.StartsWith(Const.BearerTokenPrefix) && string.IsNullOrEmpty(authHeader))
+            if (httpContext.User.Identity!.AuthenticationType != Const.Ntlm && string.IsNullOrEmpty(authHeader))
             {
                 context.Fail();
                 return Task.CompletedTask;
@@ -55,7 +58,7 @@ public class RouteGuardianPolicy
             if (httpContext.User.Identity!.AuthenticationType == Const.Ntlm)
                 subjects = _winHelper.GetSubjectsFromWinUserGroups(httpContext);
             
-            if (_routeGuardian.IsGranted(request!.Method, request.Path, subjects))
+            if (_routeGuardian.IsGranted(request!.Method, request.Path, subjects!))
                 context.Succeed(requirement);
             else
                 context.Fail();
