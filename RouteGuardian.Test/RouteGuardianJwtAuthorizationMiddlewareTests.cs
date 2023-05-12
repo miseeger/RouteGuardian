@@ -11,7 +11,11 @@ using RouteGuardian.Extension;
 
 namespace RouteGuardian.Test
 {
-    [TestClass]
+    
+    // ============================================================= //
+    // Remains to have a demo on how to setup Http-Hosts for testing //
+    // ============================================================= //
+    
     public class RouteGuardianJwtAuthorizationMiddlewareTests
     {
         private static IConfiguration _config;
@@ -51,7 +55,7 @@ namespace RouteGuardian.Test
                     builder.Configure(app =>
                     {
                         app.UseAuthentication();
-                        app.UseRouteGuardianJwtAuthorization();
+                        //app.UseRouteGuardianJwtAuthorization();
                     });
                     builder.UseTestServer();
                 }).StartAsync();
@@ -99,7 +103,7 @@ namespace RouteGuardian.Test
                     builder.Configure(app =>
                     {
                         app.UseAuthentication();
-                        app.UseRouteGuardianJwtAuthorization();
+                        //app.UseRouteGuardianJwtAuthorization();
                     });
                     builder.UseTestServer();
                 }).StartAsync();
@@ -149,7 +153,7 @@ namespace RouteGuardian.Test
                     builder.Configure(app =>
                     {
                         app.UseAuthentication();
-                        app.UseRouteGuardianJwtAuthorization();
+                        // app.UseRouteGuardianJwtAuthorization();
                     });
                     builder.UseTestServer();
                 }).StartAsync();
@@ -199,7 +203,7 @@ namespace RouteGuardian.Test
                     builder.Configure(app =>
                     {
                         app.UseAuthentication();
-                        app.UseRouteGuardianJwtAuthorization();
+                        // app.UseRouteGuardianJwtAuthorization();
                         app.Run(async context =>
                         {
                             await context.Response.WriteAsync("Pipeline successfully terminated.");

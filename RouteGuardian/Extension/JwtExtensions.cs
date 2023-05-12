@@ -1,9 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Builder;
-using Newtonsoft.Json;
-using RouteGuardian.Middleware;
-using RouteGuardian.Middleware.Authorization;
 
 namespace RouteGuardian.Extension
 {

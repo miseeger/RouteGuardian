@@ -6,6 +6,7 @@ namespace RouteGuardian.Helper
     public interface IWinHelper
     {
         string GetWinUserGroupsHash(WindowsIdentity identity);
-        void RegisterWinUserGroupsAsRoleClaims(HttpContext context);
+        string GetSubjectsFromWinUserGroups(HttpContext context);
+        void ClearWinUserGroupsCache();
     }
 }

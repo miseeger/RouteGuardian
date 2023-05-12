@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using System.Security.Principal;
+﻿using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
 using RouteGuardian.Extension;
 using RouteGuardian.Model;
@@ -12,11 +11,11 @@ namespace RouteGuardian.Helper
         // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/windowsauth?view=aspnetcore-6.0&tabs=visual-studio#impersonation
         // https://stackoverflow.com/questions/34951713/aspnet5-windows-authentication-get-group-name-from-claims
         
-        private Dictionary<string, WinUserClaims> _winUserClaimsCache { get; }
+        private Dictionary<string, WinUserGroups> _winUserGroupsCache { get; }
 
         public WinHelper()
         {
-            _winUserClaimsCache = new Dictionary<string, WinUserClaims>();
+            _winUserGroupsCache = new Dictionary<string, WinUserGroups>();
         }
         
         
@@ -28,67 +27,68 @@ namespace RouteGuardian.Helper
                 .ComputeMd5();
         }
 
-        public void RegisterWinUserGroupsAsRoleClaims(HttpContext context)
+        public string GetSubjectsFromWinUserGroups(HttpContext context)
         {
+            var subjects = string.Empty;
             var wi = (WindowsIdentity) context.User.Identity!;
 
-            if (wi.Groups == null) return;
+            if (wi.Groups == null)
+                return subjects;
 
-            var cachedWinUserClaims = ReadWinUserClaimsCache(wi.Name);
+            var cachedWinUserGroups = ReadWinUserGroupsCache(wi.Name);
             var winUserGroupsHashCode = GetWinUserGroupsHash(wi);
 
-            if (cachedWinUserClaims == null || cachedWinUserClaims?.HashCode != winUserGroupsHashCode)
+            if (cachedWinUserGroups == null || cachedWinUserGroups?.HashCode != winUserGroupsHashCode)
             {
-                var claims = wi.Groups
-                    .Select(g => g.Translate(typeof(NTAccount)).ToString())
+                subjects = wi.Groups
+                    .Select(g => g.Translate(typeof(NTAccount)).ToString().ToUpper())
                     .OrderBy(g => g)
-                    .Select(g => new Claim(ClaimTypes.Role, g.ToUpper()))
-                    .ToList();
+                    .Aggregate((g1, g2) => $"{g1}|{g2}");
 
-                context.User.AddIdentity(new ClaimsIdentity(claims));
-
-                WriteWinUserClaimsCache(wi.Name, new WinUserClaims()
+                WriteWinUserGroupsCache(wi.Name, new WinUserGroups()
                 {
-                    Claims = claims,
+                    Groups = subjects,
                     HashCode = winUserGroupsHashCode
                 });
             }
             else
             {
-                context.User.AddIdentity(new ClaimsIdentity(cachedWinUserClaims.Claims));
+                subjects = cachedWinUserGroups.Groups;
             }
+
+            return subjects;
         }
 
         // ----- WinUserGroupsCache -------------------------------------------
 
-        public void ClearWinUserClaimsCache()
+        public void ClearWinUserGroupsCache()
         {
-            _winUserClaimsCache.Clear();
+            _winUserGroupsCache.Clear();
         }
 
-        public bool IsInWinUserClaimsCache(string username)
+        private bool IsInWinUserGroupsCache(string username)
         {
-            return _winUserClaimsCache!.ContainsKey(username.ToUpper());
+            return _winUserGroupsCache!.ContainsKey(username.ToUpper());
         }
 
-        public WinUserClaims? ReadWinUserClaimsCache(string username)
+        private WinUserGroups? ReadWinUserGroupsCache(string username)
         {
-            return IsInWinUserClaimsCache(username)
-                ? _winUserClaimsCache[username.ToUpper()]
+            return IsInWinUserGroupsCache(username)
+                ? _winUserGroupsCache[username.ToUpper()]
                 : null;
         }
 
-        public void WriteWinUserClaimsCache(string username, WinUserClaims claims)
+        private void WriteWinUserGroupsCache(string username, WinUserGroups claims)
         {
             username = username.ToUpper();
 
-            if (IsInWinUserClaimsCache(username))
+            if (IsInWinUserGroupsCache(username))
             {
-                _winUserClaimsCache[username] = claims;
+                _winUserGroupsCache[username] = claims;
             }
             else
             {
-                _winUserClaimsCache.Add(username, claims);
+                _winUserGroupsCache.Add(username, claims);
             }
         }
     }
