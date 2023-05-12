@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
 using RouteGuardian.Middleware;
-using RouteGuardian.Middleware.Authorization;
 using RouteGuardian.Middleware.Misc;
 
 namespace RouteGuardian.Extension
@@ -13,19 +11,7 @@ namespace RouteGuardian.Extension
             app.UseMiddleware<RouteGuardianMiddleware>(guardedPath);
             return app;
         }
-
-        public static IApplicationBuilder UseRouteGuardianJwtAuthorization(this IApplicationBuilder app)
-        {
-            app.UseMiddleware<RouteGuardianJwtAuthorizationMiddleware>();
-            return app;
-        }
-
-        public static IApplicationBuilder UseRouteGuardianWinAuthorization(this IApplicationBuilder app)
-        {
-            app.UseMiddleware<RouteGuardianWinAuthorizationMiddleware>();
-            return app;
-        }
-
+        
         public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
         {
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();

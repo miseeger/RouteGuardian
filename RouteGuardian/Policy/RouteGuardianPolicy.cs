@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using RouteGuardian.Helper;
 
@@ -15,17 +14,19 @@ public class RouteGuardianPolicy
     {
         private IHttpContextAccessor _httpContextAccessor;
         private RouteGuardian _routeGuardian;
-        private WinHelper _winHelper;
+        private IWinHelper _winHelper;
+        private IJwtHelper _jwtHelper;
 
         public AuthorizationHandler(
             IHttpContextAccessor httpContextAccesor,
             RouteGuardian routeGuardian,
-            WinHelper winHelper
+            IServiceProvider serviceProvider
         )
         {
             _httpContextAccessor = httpContextAccesor;
             _routeGuardian = routeGuardian;
-            _winHelper = winHelper;
+            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper));
+            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper));
         }
 
 
@@ -33,46 +34,31 @@ public class RouteGuardianPolicy
             AuthorizationHandlerContext context,
             Requirement requirement)
         {
-            var request = _httpContextAccessor?.HttpContext!.Request;
+            var httpContext = _httpContextAccessor?.HttpContext;
 
             if (!context.User.Identity!.IsAuthenticated) 
                 return Task.CompletedTask;
-
-            if (context.User.Identity!.AuthenticationType == Const.Ntlm)
-            {
-                _winHelper.RegisterWinUserGroupsAsRoleClaims(_httpContextAccessor?.HttpContext!);
-            }
             
-            if (context.User.Claims.Any())
-            {
-                var roles = context.User.Claims
-                    .Where(c => c.Type == ClaimTypes.Role)
-                    .ToList();
+            var request = httpContext.Request;
+            var authHeader = request.Headers[Const.AuthHeader].ToString();
+            var subjects = string.Empty;
 
-                if (roles.Any())
-                {
-                    var subjects = roles
-                        .Select(c => c.Value.ToString())
-                        .Aggregate((c1, c2) => $"{c1}|{c2}");
-
-                    if (_routeGuardian.IsGranted(request!.Method, request.Path, subjects))
-                    {
-                        context.Succeed(requirement);
-                    }
-                    else
-                    {
-                        context.Fail();
-                    }
-                }
-                else
-                {
-                    context.Fail();
-                }
-            }
-            else
+            if (authHeader.StartsWith(Const.BearerTokenPrefix) && string.IsNullOrEmpty(authHeader))
             {
                 context.Fail();
+                return Task.CompletedTask;
             }
+
+            if (authHeader.StartsWith(Const.BearerTokenPrefix))
+                subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
+
+            if (httpContext.User.Identity!.AuthenticationType == Const.Ntlm)
+                subjects = _winHelper.GetSubjectsFromWinUserGroups(httpContext);
+            
+            if (_routeGuardian.IsGranted(request!.Method, request.Path, subjects))
+                context.Succeed(requirement);
+            else
+                context.Fail();
 
             return Task.CompletedTask;
         }

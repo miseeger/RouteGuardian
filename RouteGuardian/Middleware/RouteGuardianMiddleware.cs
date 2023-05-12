@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using RouteGuardian.Helper;
 
 namespace RouteGuardian.Middleware
 {
@@ -10,14 +10,21 @@ namespace RouteGuardian.Middleware
         private readonly RouteGuardian _routeGuardian;
         private string _guardedPath;
         private readonly ILogger<RouteGuardianMiddleware> _logger;
+        private IWinHelper _winHelper;
+        private IJwtHelper _jwtHelper;
 
-        public RouteGuardianMiddleware(RequestDelegate next, ILogger<RouteGuardianMiddleware> logger, 
+        public RouteGuardianMiddleware(
+            RequestDelegate next, 
+            ILogger<RouteGuardianMiddleware> logger,
+            IServiceProvider serviceProvider,
             string guardedPath = "")
         {
             _next = next;
             _routeGuardian = new RouteGuardian("access.json");
             _guardedPath = guardedPath;
             _logger = logger;
+            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper));
+            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper));
         }
 
 
@@ -49,41 +56,30 @@ namespace RouteGuardian.Middleware
             {
                 if (context.Request.Path.ToString().StartsWith(_guardedPath))
                 {
-                    if (context.User.Claims.Any())
+                    var request = context.Request!;
+                    var authHeader = request.Headers[Const.AuthHeader].ToString();
+                    
+                    if ((authHeader.StartsWith(Const.BearerTokenPrefix) && !string.IsNullOrEmpty(authHeader))
+                        || context.User.Identity!.AuthenticationType == Const.Ntlm)
                     {
-                        var roles = context.User.Claims
-                            .Where(c => c.Type == ClaimTypes.Role)
-                            .ToList();
+                        var subjects = string.Empty;
+                        
+                        if (authHeader.StartsWith(Const.BearerTokenPrefix))
+                            subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
 
-                        if (roles.Any())
-                        {
-                            var subjects = roles
-                                .Select(c => c.Value.ToString())
-                                .Aggregate((c1, c2) => $"{c1}|{c2}");
-
-                            if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects))
-                            {
-                                await _next(context);
-                            }
-                            else
-                            {
-                                await ReturnUnauthorized(context, subjects);
-                            }
-                        }
-                        else
-                        {
+                        if (context.User.Identity!.AuthenticationType == Const.Ntlm)
+                            subjects = _winHelper.GetSubjectsFromWinUserGroups(context);
+                        
+                        if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects))
                             await _next(context);
-                        }
+                        else
+                            await ReturnUnauthorized(context, subjects);
                     }
                     else
-                    {
                         await ReturnUnauthorized(context, string.Empty);
-                    }
                 }
                 else
-                {
                     await _next(context);
-                }
             }
             else
             {

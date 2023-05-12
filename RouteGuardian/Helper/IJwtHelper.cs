@@ -14,5 +14,6 @@ namespace RouteGuardian.Helper
             string algorithm = SecurityAlgorithms.HmacSha256);
         bool ValidateToken(string authToken);
         JwtSecurityToken ReadToken(string jwt);
+        string GetSubjectsFromJwtToken(string authToken);
     }
 }

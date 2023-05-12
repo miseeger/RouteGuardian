@@ -103,5 +103,21 @@ namespace RouteGuardian.Helper
                 ? jwtSecHandler.ReadJwtToken(authToken)
                 : null;
         }
+
+        public string GetSubjectsFromJwtToken(string authToken)
+        {
+            var subjects = string.Empty;
+            var jwt = ReadToken(authToken);
+
+            if (jwt == null)
+                return subjects;
+
+            return jwt.Claims
+                .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value
+                .Split(Const.SeparatorPipe)
+                .Where(r => r != Const.JwtDbLookupRole)
+                .OrderBy(r => r)
+                .Aggregate((r1, r2) => $"{r1.ToUpper()}|{r2.ToUpper()}");
+        }
     }
 }

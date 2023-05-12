@@ -1,9 +1,7 @@
-﻿using System.Security.Claims;
+﻿namespace RouteGuardian.Model;
 
-namespace RouteGuardian.Model;
-
-public class WinUserClaims
+public class WinUserGroups
 {
-    public List<Claim> Claims { get; set; }
+    public string Groups { get; set; }
     public string HashCode { get; set; }
 }

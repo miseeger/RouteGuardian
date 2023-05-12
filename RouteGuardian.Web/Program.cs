@@ -60,7 +60,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseRouteGuardianJwtAuthorization();
 app.UseRouteGuardian("/api");
 
 app.MapControllers();
