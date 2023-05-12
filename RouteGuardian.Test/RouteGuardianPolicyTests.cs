@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using RouteGuardian.Middleware;
 using Microsoft.Extensions.Logging;
 using RouteGuardian.Helper;
 using RouteGuardian.Policy;
@@ -19,18 +17,20 @@ namespace RouteGuardian.Test
     {
         private static IConfiguration _config;
         private static IJwtHelper _jwtHelper;
+        private static ILogger<RouteGuardianPolicy> _loggerMock;
         private static string _secretKey;
         private static string _jwtToken;
+        
         
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            
             _config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
             _jwtHelper = new JwtHelper(_config);
             _secretKey = Environment.GetEnvironmentVariable(_config["RouteGuardian:JwtAuthentication:ApiSecretEnVarName"])!;
+            _loggerMock = new Mock<ILogger<RouteGuardianPolicy>>().Object;
             
             var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
             
@@ -53,7 +53,8 @@ namespace RouteGuardian.Test
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx1", testUser).Object,
                 new RouteGuardian("access.json"),
-                new ServiceProviderMock(_config).Object);
+                new ServiceProviderMock(_config).Object,
+                _loggerMock);
 
             // --- Act
             await authHandler.HandleAsync(authContext);
@@ -74,7 +75,8 @@ namespace RouteGuardian.Test
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx2", testUser).Object,
                 new RouteGuardian("access.json"),
-                new ServiceProviderMock(_config).Object);
+                new ServiceProviderMock(_config).Object,
+                _loggerMock);
 
             // --- Act
             await authHandler.HandleAsync(authContext);
@@ -95,7 +97,8 @@ namespace RouteGuardian.Test
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx3", testUser, _jwtToken).Object,
                 new RouteGuardian("access.json"),
-                new ServiceProviderMock(_config).Object);
+                new ServiceProviderMock(_config).Object,
+                _loggerMock);
 
             // --- Act
             await authHandler.HandleAsync(authContext);
@@ -116,7 +119,8 @@ namespace RouteGuardian.Test
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx4", testUser, _jwtToken).Object,
                 new RouteGuardian("access.json"),
-                new ServiceProviderMock(_config).Object);
+                new ServiceProviderMock(_config).Object,
+                _loggerMock);
 
             // --- Act
             await authHandler.HandleAsync(authContext);
