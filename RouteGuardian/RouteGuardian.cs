@@ -29,28 +29,28 @@ namespace RouteGuardian
 
         private void InitAccessRulesFromJsonFile(string accessFileName)
         {
-            if (File.Exists(accessFileName))
+            if (!File.Exists(accessFileName)) 
+                return;
+            
+            var access = JsonConvert.DeserializeObject<GuardAccess>(File.ReadAllText(accessFileName));
+
+            if (access == null) 
+                return;
+            
+            Clear();
+            DefaultPolicy(access.Default == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny);
+
+            foreach (var rule in access.Rules)
             {
-                var access = JsonConvert.DeserializeObject<GuardAccess>(File.ReadAllText(accessFileName));
-
-                if (access != null)
+                var splitRule = rule.Split(Const.SeparatorSpace);
+                try
                 {
-                    Clear();
-                    DefaultPolicy(access.Default == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny);
-
-                    foreach (var rule in access.Rules)
-                    {
-                        var splitRule = rule.Split(Const.SeparatorSpace);
-                        try
-                        {
-                            Rule(splitRule[0].ToLower() == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny,
-                                splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());
-                        }
-                        catch (Exception)
-                        {
-                            // Todo: Log Exception when adding new Rule    
-                        }
-                    }
+                    Rule(splitRule[0].ToLower() == Const.Allow ? GuardPolicy.Allow : GuardPolicy.Deny,
+                        splitRule[1].ToUpper(), splitRule[2], splitRule[3].ToUpper());
+                }
+                catch (Exception)
+                {
+                    // Todo: Log Exception when adding new Rule    
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace RouteGuardian
 
         public RouteGuardian Rule(GuardPolicy policy, string verbs, string path, string subjects)
         {
-            var verbsPos = verbs.Split(Const.SeparatorPipe);
+            var verbsPos = verbs.ToUpper().Split(Const.SeparatorPipe);
             var subs = subjects.ToUpper().Split(Const.SeparatorPipe);
 
             if (!subs.Any())
@@ -95,7 +95,7 @@ namespace RouteGuardian
                     {
                         Policy = policy,
                         Verb = verb,
-                        Path = path,
+                        Path = path.ToLower(),
                         Subject = subject
 
                     });
@@ -108,7 +108,7 @@ namespace RouteGuardian
                     {
                         Policy = policy == GuardPolicy.Allow ? GuardPolicy.Deny : GuardPolicy.Allow,
                         Verb = verb,
-                        Path = path,
+                        Path = path.ToLower(),
                         Subject = subject
                     });
                 }
@@ -136,6 +136,10 @@ namespace RouteGuardian
                 return false;
             }
 
+            verb = verb.ToUpper();
+            path = path.ToLower();
+            subjects = subjects.ToUpper();
+
             var rulesToMatch = Rules
                 .Where(r => r.Verb == verb.ToUpper()
                     && (subjects.ToUpper().Split(Const.SeparatorPipe).Contains(r.Subject) || r.Subject == Const.WildCard)
@@ -144,7 +148,7 @@ namespace RouteGuardian
 
             var matchingRules = new List<GuardRule>();
 
-            // jede Rule in ein RegEx umbauen und auf Match zu path prüfen
+            // Jede Rule in ein RegEx umbauen und auf Match zu path prüfen
             foreach (var rule in rulesToMatch)
             {
                 var pathPattern = rule.Path
@@ -162,12 +166,11 @@ namespace RouteGuardian
             {
                 return Policy == GuardPolicy.Allow;
             }
-
-            var access = Policy;
+            
             var individualMatchingRules = matchingRules.Where(r => subjects.Contains(r.Subject)).ToList();
             var wildcardMatchingRules = matchingRules.Where(r => r.Subject == Const.WildCard).ToList();
 
-            // sobald matchingRules für eines der Subjects da sind, weden diese vorrangig behandelt:
+            // Sobald matchingRules für eines der Subjects da sind, weden diese vorrangig behandelt:
             if (individualMatchingRules.Any())
             {
                 var accessIv =
@@ -178,7 +181,7 @@ namespace RouteGuardian
             }
             else
             {
-                // sind keine individuellen matchingrules vorhanden, werden die 
+                // Sind keine individuellen matchingrules vorhanden, werden die 
                 // wildcardMatchingRules geprüft:
                 if (wildcardMatchingRules.Any())
                 {

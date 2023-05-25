@@ -13,19 +13,19 @@ namespace RouteGuardian.Test
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Allow)
                 .Deny("*", "/back", "*")
-                .Allow("*", "/back", "ADMIN|PROD")
+                .Allow("*", "/back", "admin|Prod")
                 .Deny("*", "/back/users", "PROD");
 
             // Access granted by default
             Assert.IsTrue(GuardPolicy.Allow == routeGuardian.Policy);
             // Access granted by default
-            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog", "CLIENT"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog", "client"));
             // Access to a specific path denied to all
             Assert.IsFalse(routeGuardian.IsGranted("GET", "/back", "CLIENT"));
             // Access to a path granted to a specific subject
-            Assert.IsTrue(routeGuardian.IsGranted("GET", "/back", "PROD"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/back", "prod"));
             // Access to a subpath denied to a specific subject
-            Assert.IsFalse(routeGuardian.IsGranted("GET", "/back/users", "PROD"));
+            Assert.IsFalse(routeGuardian.IsGranted("GET", "/back/users", "Prod"));
         }
 
         [TestMethod]
@@ -35,17 +35,17 @@ namespace RouteGuardian.Test
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Deny)
                 .Allow("*", "/admin", "ADMIN|PROD")
-                .Deny("*", "/admin/part2", "*")
-                .Allow("*", "/admin/part2", "ADMIN");
+                .Deny("*", "/admin/Part2", "*")
+                .Allow("*", "/admin/pArt2", "ADMin");
 
             // Access denied by default
             Assert.IsTrue(GuardPolicy.Deny == routeGuardian.Policy);
             // Access to a specific path granted to specific subjects
-            Assert.IsTrue(!routeGuardian.IsGranted("GET", "/admin", "CLIENT")
-                           && routeGuardian.IsGranted("GET", "/admin", "ADMIN")
-                           && routeGuardian.IsGranted("GET", "/admin", "PROD"));
+            Assert.IsTrue(!routeGuardian.IsGranted("GET", "/admin", "Client")
+                           && routeGuardian.IsGranted("GET", "/admin", "admin")
+                           && routeGuardian.IsGranted("GET", "/admin", "ProD"));
             // Access to a subpath granted to a specific subject (subpath precedence)
-            Assert.IsTrue(routeGuardian.IsGranted("GET", "/admin/part2", "ADMIN"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/admin/part2", "Admin"));
             // Access to a subpath denied to others (subpath precedence)
             Assert.IsFalse(routeGuardian.IsGranted("GET", "/admin/part2", "PROD"));
         }
@@ -57,13 +57,13 @@ namespace RouteGuardian.Test
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Deny)
                 .Deny("*", "/admin*", "*")
-                .Allow("*", "/admin*", "ADMIN")
+                .Allow("*", "/admin*", "admin")
                 .Allow("*", "/admin/part2", "ADMIN");
 
             // Wildcard suffix
             Assert.IsTrue(!routeGuardian.IsGranted("GET", "/admin")
                            && !routeGuardian.IsGranted("GET", "/admin/foo/bar")
-                           && routeGuardian.IsGranted("GET", "/admin", "ADMIN")
+                           && routeGuardian.IsGranted("GET", "/admin", "admin")
                            && routeGuardian.IsGranted("GET", "/admin/foo/bar", "ADMIN"));
 
             routeGuardian
@@ -72,7 +72,7 @@ namespace RouteGuardian.Test
 
             // Wildcard prefix
             Assert.IsTrue(!routeGuardian.IsGranted("GET", "/blog/entry/edit")
-                           && routeGuardian.IsGranted("GET", "/blog/entry/edit", "ADMIN"));
+                           && routeGuardian.IsGranted("GET", "/blog/entry/edit", "admin"));
 
             routeGuardian
                 .Allow("*", "/admin", "*")
@@ -81,10 +81,10 @@ namespace RouteGuardian.Test
             // Wildcard precedence order
             Assert.IsTrue(routeGuardian.IsGranted("GET", "/admin")
                            && !routeGuardian.IsGranted("GET", "/admin/foo/bar")
-                           && routeGuardian.IsGranted("GET", "/admin", "ADMIN")
-                           && routeGuardian.IsGranted("GET", "/admin/foo/bar", "ADMIN")
+                           && routeGuardian.IsGranted("GET", "/Admin", "ADMIN")
+                           && routeGuardian.IsGranted("GET", "/admin/foo/bar", "ADMin")
                            && routeGuardian.IsGranted("GET", "/admin/special/path")
-                           && routeGuardian.IsGranted("GET", "/admin/special/path", "ADMIN"));
+                           && routeGuardian.IsGranted("GET", "/admin/special/Path", "admin"));
         }
 
         [TestMethod]
@@ -93,12 +93,12 @@ namespace RouteGuardian.Test
             var routeGuardian = new RouteGuardian()
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Allow)
-                .Deny("POST|PUT|DELETE", "/blog/entry", "*")
+                .Deny("post|PuT|DELETE", "/blog/Entry", "*")
                 .Allow("*", "/blog/entry", "ADMIN");
 
-            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog/entry", "CLIENT")
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog/entry", "client")
                            && !routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT")
-                           && routeGuardian.IsGranted("PUT", "/blog/entry", "ADMIN"));
+                           && routeGuardian.IsGranted("PUT", "/blog/entry", "admin"));
         }
 
         [TestMethod]
@@ -107,12 +107,12 @@ namespace RouteGuardian.Test
             var routeGuardian = new RouteGuardian()
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Allow)
-                .Deny("POST|PUT|DELETE", "/blog/entry", "*")
+                .Deny("POST|PUT|delete", "/BloG/entry", "*")
                 .Allow("*", "/blog/entry", "ADMIN");
 
-            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog/entry", "CLIENT|CUSTOMER")
-                           && !routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|CUSTOMER")
-                           && routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|ADMIN"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/blog/entry", "Client|CUSTOMER")
+                           && !routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|customer")
+                           && routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|admin"));
         }
 
         [TestMethod]
@@ -121,14 +121,14 @@ namespace RouteGuardian.Test
             var routeGuardian = new RouteGuardian()
                 .Clear()
                 .DefaultPolicy(GuardPolicy.Allow)
-                .Deny("POST|PUT|DELETE", "/blog/entry", "*")
+                .Deny("Post|put|DELETE", "/blog/entry", "*")
                 .Allow("*", "/blog/entry", "ADMIN");
 
             var context = new DefaultHttpContext
             {
                 Request =
                 {
-                    Path = "/blog/entry",
+                    Path = "/blog/Entry",
                     Method = "GET"
                 }
             };
@@ -141,13 +141,13 @@ namespace RouteGuardian.Test
             // Unauthorize an unidentified subject
             Assert.IsFalse(routeGuardian.Authorize(context));
             // Authorize an identified subject
-            Assert.IsTrue(routeGuardian.Authorize(context, "ADMIN"));
+            Assert.IsTrue(routeGuardian.Authorize(context, "admin"));
             // Unauthorize an identified subject
-            Assert.IsFalse(routeGuardian.Authorize(context, "CLIENT"));
+            Assert.IsFalse(routeGuardian.Authorize(context, "Client"));
             // Authorize a set of identified subjects
-            Assert.IsTrue(routeGuardian.Authorize(context, "CLIENT|ADMIN"));
+            Assert.IsTrue(routeGuardian.Authorize(context, "CLIENT|Admin"));
             // Unauthorize a set of identified subjects'
-            Assert.IsFalse(routeGuardian.Authorize(context, "CLIENT|CUSTOMER"));
+            Assert.IsFalse(routeGuardian.Authorize(context, "client|Customer"));
         }
     }
 }

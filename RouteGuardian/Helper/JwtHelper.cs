@@ -13,6 +13,9 @@ namespace RouteGuardian.Helper
         // - https://developer.okta.com/blog/2019/06/26/decode-jwt-in-csharp-for-authorization
 
         private readonly IConfiguration _config;
+        
+        public IConfigurationSection Settings => _config.GetSection("RouteGuardian:JwtAuthentication");
+        public string Secret => Environment.GetEnvironmentVariable(Settings["ApiSecretEnVarName"])!;
 
         public JwtHelper(IConfiguration config)
         {
@@ -22,20 +25,15 @@ namespace RouteGuardian.Helper
 
         public TokenValidationParameters GetTokenValidationParameters()
         {
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            var secretKey = Environment.GetEnvironmentVariable(jwtSettings["ApiSecretEnVarName"]);
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
-
             return new TokenValidationParameters
             {
-                ValidateIssuer = jwtSettings["ValidateIssuer"].ToLower() != "false",
-                ValidateAudience = jwtSettings["ValidateAudience"].ToLower() != "false",
-                ValidateIssuerSigningKey = jwtSettings["ValidateIssuerSigningKey"].ToLower() != "false",
-                ValidateLifetime = jwtSettings["ValidateLifetime"].ToLower() != "false",
-                ValidIssuer = jwtSettings["ValidIssuer"],
-                ValidAudience = jwtSettings["ValidAudience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
+                ValidateIssuer = Settings["ValidateIssuer"].ToLower() != "false",
+                ValidateAudience = Settings["ValidateAudience"].ToLower() != "false",
+                ValidateIssuerSigningKey = Settings["ValidateIssuerSigningKey"].ToLower() != "false",
+                ValidateLifetime = Settings["ValidateLifetime"].ToLower() != "false",
+                ValidIssuer = Settings["ValidIssuer"],
+                ValidAudience = Settings["ValidAudience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Secret))
             };
         }
 
@@ -113,11 +111,11 @@ namespace RouteGuardian.Helper
                 return subjects;
 
             return jwt.Claims
-                .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value
+                .FirstOrDefault(c => c.Type == Const.JwtClaimTypeRole)!.Value.ToUpper()
                 .Split(Const.SeparatorPipe)
                 .Where(r => r != Const.JwtDbLookupRole)
                 .OrderBy(r => r)
-                .Aggregate((r1, r2) => $"{r1.ToUpper()}|{r2.ToUpper()}");
+                .Aggregate((r1, r2) => $"{r1}|{r2}");
         }
     }
 }

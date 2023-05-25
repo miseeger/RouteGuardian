@@ -10,7 +10,6 @@ namespace RouteGuardian.Test
     {
         private static IConfiguration _config;
         private static IJwtHelper _jwtHelper;
-        private static string _secretKey;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
@@ -19,7 +18,6 @@ namespace RouteGuardian.Test
                 .AddJsonFile("appsettings.json")
                 .Build();
             _jwtHelper = new JwtHelper(_config);
-            _secretKey = Environment.GetEnvironmentVariable(_config["RouteGuardian:JwtAuthentication:ApiSecretEnVarName"])!;
         }
 
 
@@ -27,25 +25,24 @@ namespace RouteGuardian.Test
         public void ShouldGetTokenValidationParametersFromConfig()
         {
             // --- Arrange
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
 
             // --- Act
             var tvp = _jwtHelper.GetTokenValidationParameters();
 
             // --- Assert (Secret key not asserted yet)
-            Assert.AreEqual(jwtSettings["ValidateIssuer"].ToLower(), tvp.ValidateIssuer ? "true" : "false");
-            Assert.AreEqual(jwtSettings["ValidateAudience"].ToLower(), tvp.ValidateAudience ? "true" : "false");
-            Assert.AreEqual(jwtSettings["ValidateIssuerSigningKey"].ToLower(), tvp.ValidateIssuerSigningKey ? "true" : "false");
-            Assert.AreEqual(jwtSettings["ValidateLifetime"].ToLower(), tvp.ValidateLifetime ? "true" : "false");
-            Assert.AreEqual(jwtSettings["ValidIssuer"], tvp.ValidIssuer);
-            Assert.AreEqual(jwtSettings["ValidAudience"], tvp.ValidAudience);
+            Assert.AreEqual(_jwtHelper.Settings["ValidateIssuer"].ToLower(), tvp.ValidateIssuer ? "true" : "false");
+            Assert.AreEqual(_jwtHelper.Settings["ValidateAudience"].ToLower(), tvp.ValidateAudience ? "true" : "false");
+            Assert.AreEqual(_jwtHelper.Settings["ValidateIssuerSigningKey"].ToLower(), tvp.ValidateIssuerSigningKey ? "true" : "false");
+            Assert.AreEqual(_jwtHelper.Settings["ValidateLifetime"].ToLower(), tvp.ValidateLifetime ? "true" : "false");
+            Assert.AreEqual(_jwtHelper.Settings["ValidIssuer"], tvp.ValidIssuer);
+            Assert.AreEqual(_jwtHelper.Settings["ValidAudience"], tvp.ValidAudience);
         }
 
         [TestMethod]
         public void ShouldGenerateToken()
         {
             // --- Arrange and Act
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey);
+            var token = _jwtHelper.GenerateToken(new List<Claim>(), _jwtHelper.Secret);
 
             // --- Assert
             Assert.AreNotEqual(token, string.Empty);
@@ -57,9 +54,8 @@ namespace RouteGuardian.Test
         public void ShouldValidateToken()
         {
             // --- Arrange
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey, "", "", 
-                jwtSettings["ValidIssuer"], jwtSettings["ValidAudience"]);
+            var token = _jwtHelper.GenerateToken(new List<Claim>(), _jwtHelper.Secret, "", "", 
+                _jwtHelper.Settings["ValidIssuer"], _jwtHelper.Settings["ValidAudience"]);
 
             // --- Act
             var isValid = _jwtHelper.ValidateToken(token);
@@ -72,9 +68,8 @@ namespace RouteGuardian.Test
         public void ShouldValidateInvalidToken()
         {
             // --- Arrange
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey, "", "",
-                "WrongIssuer", jwtSettings["ValidAudience"]);
+            var token = _jwtHelper.GenerateToken(new List<Claim>(), _jwtHelper.Secret, "", "",
+                "WrongIssuer", _jwtHelper.Settings["ValidAudience"]);
 
             // --- Act
             var isValid = _jwtHelper.ValidateToken(token);
@@ -87,9 +82,9 @@ namespace RouteGuardian.Test
         public void ShouldReadToken()
         {
             // --- Arrange
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey,
-                "TestUser", "0815", jwtSettings["ValidIssuer"], jwtSettings["ValidAudience"]);
+            var token = _jwtHelper.GenerateToken(new List<Claim>(), _jwtHelper.Secret,
+                "TestUser", "0815", _jwtHelper.Settings["ValidIssuer"], 
+                _jwtHelper.Settings["ValidAudience"]);
 
             // --- Act
             var secToken = _jwtHelper.ReadToken(token);
@@ -97,8 +92,8 @@ namespace RouteGuardian.Test
 
             // --- Assert
             Assert.AreEqual(6, secToken!.Claims.Count());
-            Assert.AreEqual(jwtSettings["ValidIssuer"], secToken!.Issuer);
-            Assert.AreEqual(jwtSettings["ValidAudience"], audiences[0]);
+            Assert.AreEqual(_jwtHelper.Settings["ValidIssuer"], secToken!.Issuer);
+            Assert.AreEqual(_jwtHelper.Settings["ValidAudience"], audiences[0]);
             Assert.AreEqual("0815", secToken!.GetUserId());
             Assert.AreEqual("TestUser", secToken!.GetUserName());
             Assert.AreEqual(secToken!.IssuedAt.AddMinutes(1440), secToken!.ValidTo);

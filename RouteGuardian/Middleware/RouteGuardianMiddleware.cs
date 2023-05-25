@@ -8,10 +8,10 @@ namespace RouteGuardian.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly RouteGuardian _routeGuardian;
-        private string _guardedPath;
+        private readonly string _guardedPath;
         private readonly ILogger<RouteGuardianMiddleware> _logger;
-        private IWinHelper _winHelper;
-        private IJwtHelper _jwtHelper;
+        private readonly IWinHelper _winHelper;
+        private readonly IJwtHelper _jwtHelper;
 
         public RouteGuardianMiddleware(
             RequestDelegate next, 
@@ -23,8 +23,8 @@ namespace RouteGuardian.Middleware
             _routeGuardian = new RouteGuardian("access.json");
             _guardedPath = guardedPath;
             _logger = logger;
-            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper));
-            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper));
+            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper))!;
+            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper))!;
         }
 
 

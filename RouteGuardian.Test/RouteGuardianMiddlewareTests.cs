@@ -15,7 +15,6 @@ namespace RouteGuardian.Test
     {
         private static IConfiguration _config;
         private static IJwtHelper _jwtHelper;
-        private static string _secretKey;
         private static string _jwtToken;
         
         [ClassInitialize]
@@ -26,15 +25,12 @@ namespace RouteGuardian.Test
                 .AddJsonFile("appsettings.json")
                 .Build();
             _jwtHelper = new JwtHelper(_config);
-            _secretKey = Environment.GetEnvironmentVariable(_config["RouteGuardian:JwtAuthentication:ApiSecretEnVarName"])!;
-            
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            
+
             _jwtToken = _jwtHelper.GenerateToken(new List<Claim>()
                 {
-                    new Claim(Const.JwtClaimTypeRole, "ADMIN|ADMIN_SALES|ADMIN_MARKETING"),
-                }, _secretKey, "admin", "0815",
-                jwtSettings["ValidIssuer"], jwtSettings["ValidAudience"]);
+                    new (Const.JwtClaimTypeRole, "admin|ADMIN_Sales|Admin_MARKETING"),
+                }, _jwtHelper.Secret, "admin", "0815",
+                _jwtHelper.Settings["ValidIssuer"], _jwtHelper.Settings["ValidAudience"]);
         }
         
         [TestMethod]
@@ -113,8 +109,8 @@ namespace RouteGuardian.Test
                 User = new ClaimsPrincipal(new ClaimsIdentity("FakeAuthTypeToAuthenticateUser")),
                 Request =
                 {
-                    Method = "GET",
-                    Path = "/api/test/test",
+                    Method = "get",
+                    Path = "/api/tEst/test",
                     Headers =
                     {
                         new (Const.AuthHeader, $"{Const.BearerTokenPrefix}{_jwtToken}")
@@ -144,7 +140,7 @@ namespace RouteGuardian.Test
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Role, "PROD")
+                    new (ClaimTypes.Role, "PROD")
                 }, "FakeAuthTypeToAuthenticateUser")),
                 Request =
                 {

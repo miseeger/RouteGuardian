@@ -30,7 +30,6 @@ namespace RouteGuardian.Test
                 .AddJsonFile("appsettings.json")
                 .Build();
             _jwtHelper = new JwtHelper(_config);
-            _secretKey = Environment.GetEnvironmentVariable(_config["RouteGuardian:JwtAuthentication:ApiSecretEnVarName"])!;
         }
 
 

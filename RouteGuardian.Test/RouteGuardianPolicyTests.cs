@@ -18,7 +18,6 @@ namespace RouteGuardian.Test
         private static IConfiguration _config;
         private static IJwtHelper _jwtHelper;
         private static ILogger<RouteGuardianPolicy> _loggerMock;
-        private static string _secretKey;
         private static string _jwtToken;
         
         
@@ -29,15 +28,14 @@ namespace RouteGuardian.Test
                 .AddJsonFile("appsettings.json")
                 .Build();
             _jwtHelper = new JwtHelper(_config);
-            _secretKey = Environment.GetEnvironmentVariable(_config["RouteGuardian:JwtAuthentication:ApiSecretEnVarName"])!;
             _loggerMock = new Mock<ILogger<RouteGuardianPolicy>>().Object;
             
             var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
             
             _jwtToken = _jwtHelper.GenerateToken(new List<Claim>()
                 {
-                    new Claim(Const.JwtClaimTypeRole, "ADMIN|ADMIN_SALES|ADMIN_MARKETING"),
-                }, _secretKey, "admin", "0815",
+                    new (Const.JwtClaimTypeRole, "Admin|ADMIN_Sales|admin_MARKETING"),
+                }, _jwtHelper.Secret, "admin", "0815",
                 jwtSettings["ValidIssuer"], jwtSettings["ValidAudience"]);
         }
         
@@ -70,13 +68,11 @@ namespace RouteGuardian.Test
             var testUser = new ClaimsPrincipal(new ClaimsIdentity(null, "NotNtlmAuthType"));
             var authContext = new AuthorizationHandlerContext(
                 new List<IAuthorizationRequirement> { new RouteGuardianPolicy.Requirement() }, 
-                testUser, 
-                null); 
+                testUser, null); 
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx2", testUser).Object,
                 new RouteGuardian("access.json"),
-                new ServiceProviderMock(_config).Object,
-                _loggerMock);
+                new ServiceProviderMock(_config).Object, _loggerMock);
 
             // --- Act
             await authHandler.HandleAsync(authContext);
