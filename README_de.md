@@ -8,6 +8,8 @@ Der RouteGuardian prüft Regeln, die für eine ressourcenbasierende Autorisierun
 
 Die RouteGuardian-Middleware und die Policy sind grundlegend auf ein gruppenbasiertes Autorisierungs-Szenario ausgelegt, das sowohl die JWT-Authentifizierung und -Autorisierung als auch die Windows-Authentifizierung und -Autorisierung (über Windows Userrgruppen) unterstützt. Bei der Nutzung der Basisfunktionalität des RouteGuardian können die Prüfrichtlinien je nach Anforderung implementiert werden.
 
+Zusätzlich stellt der RouteGuardian einen JwtHelper für die Webtoken-Verarbeitung  und eine WinHelper zur Verarbeitung von AD-Gruppenberechtigungen aus der Windows Authentication bereit. Letzterer implementiert auch einen GroupsCache für die WinAuth.
+
 ## Generelle Nutzung
 
 Der RouteGuardian verfügt über eine generelle Richtlinie (Policy), die als Standard entweder den Zugriff auf API-Endpunkte (Ressourcen) freigibt (`deny`) oder zulässt (`allow`). Wird der RouteGuardian instanziiert, steht die Default Policy auf `deny`. Das bedeutet, dass alle Routen generell gesperrt sind, wenn sie nicht explizit freigegeben: Need-To-Know-Prinzip.
@@ -145,25 +147,159 @@ Beim Instanzieren des `JwtHelper` wird eine Konfiguration benötigt, die wahlwei
 | `Settings` | `IConfigurationSection` | Enthält die Werte der zuvor beschriebenen JWT-Konfiguration  |
 | `Secret`   | `string`                | Das in einer Umgebungsvariablen im System gespeicherte Verschlüsselungs-Kennwort für JWTs |
 
-| Methods                                                      | Rückgabe                    | Funktion                                                     |
+| Methode                                                      | Rückgabe                    | Funktion                                                     |
 | ------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------ |
 | `GetTokenValidationParameters()`                             | `TokenValidationParameters` | Gibt die in der Konfiguration angegebenen Werte als Objekt vom Typ `TokenValidationParemeters` zurück. |
 | `GenerateToken(claims, key, userName, userId, issuer, audience, validForMinutes, algorithm)` | `string`                    | Generiert ein (mit `HmacSha256` verschlüsseltes) JWT. Der Methode muss eine Liste von Claims mitgegeben werden, die mindestens den Claim `rol` hat, der die Rollen des sich authentifizierdenden Benutzers trägt. Zwingend angegeben werden muss auch das Kennwort für die Verschlüsselung. Die folgenden Parameter für die Methode sind wie folgt vorbelegt und müssen nicht angegeben werden und sind per default mit einem Leerstring belegt: `username`,  `userId`, `issuer` , `audience` . `validForMinutes` wird mit 1440 (= 24 Stunden) vorbelegt. Als `algorithm` wird `HmacSha256` vorbelegt. |
 | `ValidateToken(authToken)`                                   | true / false                | Prüft das als String angegebenen Token und gibt, gemäß den Einstellungen zur Validierung (s. o.) zurück,  ob es gültig ist. |
-| `ReadToken(authToken)`                                       | `JwtSecurityToken`          | Liest das als String angegebene Token, lässt es prüfen und wandelt es in ein `JwtSecurityToken` um. Ist das Token ungültig, wird hier `null` zurückgegeben. |
+| `ReadToken(authToken)`                                       | `JwtSecurityToken?`         | Liest das als String angegebene Token, lässt es prüfen und wandelt es in ein `JwtSecurityToken` um. Ist das Token ungültig, wird hier `null` zurückgegeben. |
 | `GetSubjectsFromJwtToken(authToken)`                         | `string`                    | Ermittelt die Rollen-Claims aus dem übergebenen und geprüften Token und gibt sie als zusammengesetzten (CSV)-String zurück. |
+| GetTokenFromContext(context)                                 | `string`                    | Liest das JWT-Token aus dem Authorization-Header des Request (im `HttpContext`) aus. |
+| GetTokenClaimsFromContext(context)                           | `List<Claim>?`              | Liest alle Claims des JWT-Token aus dem Authorization-Header des Request (im `HttpContext`) aus. Wurde ein ungültiger Token festgestellt, wird `null` zurückgeliefert. |
+| GetTokenClaimValueFromContext(context, claimType)            | `string?`                   | Liefert den Wert eines Claims (ermittelt über den angegebenen `claimType`) aus den Claims, die aus dem JWT-Token im Authorization-Header des Request ermittelt werden. Ist der Token ungültig oder der ClaimType nicht gesetzt/vorhanden, dann wird `null` zurückgegeben. |
 
 ### WinHelper
 
+Der WinHelper kümmert sich um die Ermittlung der dem über Windows Single-Sign-On authentifizierten Benutzer zugewiesenen Gruppen aus dem Active Directory. Diese können über Hilfsmethoden in Klartext gewandelt werden und als RouteGuardian-Subjects zurückgeliefert werden. Dieser Methodik bedient sich die Middleware des RouteGuardian und die RouteGuardian-Policy für API-Endpunkte.
+
+Da der Prozess der Ermittlung von AD-Benutzergruppen und deren Umwandlung in Klartext kostbare Zeit kostet, werden die einmal ermittelten Benutzergruppen pro Benutzer gecashed und mit einem Hashcode versehen. Dieser Hashcode wird aus den GUIDs der AD-Gruppen errechnet, noch bevor die Übersetzung in Klartext geschieht. So wird dann nur bei Änderungen in den AD-Gruppen eines Benutzers eine Neu-Übersetzung notwendig.
+
+#### Konfiguration
+
 Für den Windows-Helper wird keine Konfiguration benötigt. Er funktioniert out-of-the-box.
+
+#### Interface
+
+| Methode                               | Rückgabe | Funktion                                                     |
+| ------------------------------------- | -------- | ------------------------------------------------------------ |
+| GetWinUserGroupsHash(identity)        | `string` | Ermittelt den Hashwert aller AD-Grupen des authentifizierten Benutzers (`WindowsIdentity`). Der Hash wird als MD5-Hash geliefert. |
+| GetSubjectsFromWinUserGroups(context) | `string` | Liefert alle RouteGuardian-Subjects (Klartext der AD-Gruppen) eines authentifizierten Benutzers aus dem übergebenen `HttpContext`. Diese Methode nutzt den bereits beschriebenen Windows-User Groups-Cache. |
+| ClearWinUserGroupsCache()             | keine    | Löscht den `WinUserGroupsCache`.                             |
 
 ## JWT-Authentication
 
+RouteGuardian liefert eine vorgefertigte Extension Method für die `IServiceCollection`, die während der Service-Konfiguration in `Program.cs` dafür sorgt, dass die Anwendung JWT-Authentication nutzen kann und der JWTHelpter (als `IJwtHelper`) für die Depencency-Injection bereitgestellt wird.
+
+Die Konfiguration ist wie folgt:
+
+`Program.cs`
+
+```c#
+using RouteGuardian.Extension;
+
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+...
+    
+// ----- Authentication and Authorization -------------------------------------
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
+// ----- Register and configure JWT-Authenticaiton ----------------------------
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+...
+```
+
+Wichtig ist hier, dass sowohl die Authentication und Authorization eingebunden wird und für die JwtAuthentication im Speziellen die Configuration (`appsettings.json`) noch mit übergeben wird, aus der die notwendigen Einstellungen für die JWT-Authentifizierung entnommen werden (siehe weiter oben).
+
 ## Windows-Authentication
+
+Mit der Windows-Authentication verhält es sich ähnlich wie mit der JWT-Authentication. Auch sie wird über eine Extension Method bereitgestellt, die den WinHelper (als `IWinHelper`) für die Dependency-Injection bereitstellt.
+
+Die Konfiguration in  `Programm.cs` ist wie folgt:
+
+```c#
+using RouteGuardian.Extension;
+
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+...
+    
+// ----- Authentication and Authorization -------------------------------------
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
+// ----- Register and configure Windows-Authenticaiton ------------------------
+builder.Services.AddWindowsAuthentication(builder.Configuration);
+
+...
+```
+
+## RouteGuardianPolicy
+
+Die RouteGuardianPolicy ist eine Policy mit dem Namen "RougeGuardian", welche zur Prüfung des authorisierten Zugriffs auf einen API-Endpunkt genutzt wird und dabei die Regeln des RouteGuardian prüft.
+
+Registriert wird die Policy auch in der `Program.cs`, wie z. B. so:
+
+```c#
+using RouteGuardian.Extension;
+
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+...
+    
+// ----- Register and configure JWT-Authenticaiton ----------------------------
+builder.Services.AddWindowsAuthentication(builder.Configuration);
+builder.Services.AddRouteGuarianPolicy("access.json");
+...
+```
+
+Die einzige Information, die die Policy zur Konfiguration benötigt, ist der Pfad der Datei mit den zu nutzenden Zugriffsregeln.
+
+> Wird die RouteGuardianPolicy in einer Anwendung verwendet, benötigt man keine RouteGuardianMiddleware.
+
+#### Verwendung der RouteGuardianPolicy
+
+Dieses kurze Code-Beispiel zeigt die Verwendung der RouteGuardianPolicy in einer ASP.NET Minimal-API:
+
+```c#
+
+```
 
 ## RouteGuardianMiddleware
 
-## RouteGuardianPolicy
+Die RouteGuardian Middleware wird in die Pipeline zwischen Authentication- und Authorization-Middleware und noch vor der Mapping-Middleware für die Controller gesetzt. Diese Konfiguration wird wie bei der Policy in der `Program.cs` vorgenommen.
+
+Die Einbindung geschieht z. B. wie folgt:
+
+```c#
+using RouteGuardian.Extension;
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+... 
+
+// ===== Pipeline (Middleware) ================================================
+var app = builder.Build();
+
+...
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Einbindung der RouteGuardian Middleware:
+app.UseRouteGuardian("/api"); 
+
+app.MapControllers();
+
+app.Run();
+```
+
+Die einzige Information, die die RouteGuardian Middleware für die Konfiguration benötigt, ist der Basispfad der zu schützenden Endpunkte, hier "/api". Die zu berücksichtigenden Regeln werden beim Starten der Anwendung aus der Definitionsdatei mit dem Namen `access.json`  hinterlegt. Diese muss sich im Basisverzeichnis der Anwendung befinden.
+
+> Wird die RouteGuardianMiddleware in einer Anwendung verwendet, benötigt man keine RouteGuardianPolicy.
+
+## Extras
+
+Die RouteGuardian-Bibliothek bringt noch ein paar Goodies mit, die nicht unbedingt in den Kontext der Absicherung von API-Routen gehört, aber nützlich für eine (Web-)Anwendung sein könnten.
+
+### GlobalExceptionHandlerMiddleware
+
+### StringExtensions
 
 
 
