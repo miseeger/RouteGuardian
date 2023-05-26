@@ -58,7 +58,6 @@ namespace RouteGuardian.Extension
             {
                 builder.AddPolicy("RouteGuardian", pBuilder => pBuilder
                     .RequireAuthenticatedUser()
-                    // .AddAuthenticationSchemes(NegotiateDefaults.AuthenticationScheme) // ??? idk if actually needed ???
                     .AddRequirements(new RouteGuardianPolicy.Requirement())
                 );
             });
