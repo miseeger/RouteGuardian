@@ -5,33 +5,30 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<AssemblyVersion>1.0.0</AssemblyVersion>
+	<FileVersion>1.0.0</FileVersion>
+	<PackageId>RouteGuardian</PackageId>
+	<PackageVersion>1.0.0</PackageVersion>
+	<Title>RouteGuardian</Title>
 	<Description>RouteGuardian - Protects your API routes with the RouteGuardian Middleware or Authorization-Policy - heavily inspired by F3-Access</Description>
+	<Authors>MiSeeger</Authors>
 	<Copyright>2022 - 2023 MiSeeger</Copyright>
+	<PackageTags>ASP.NET Core Middleware Security Authorization Policy MinimalAPI WebApi Controllers</PackageTags>
 	<PackageIcon>RouteGuardianLogo_xxs.png</PackageIcon>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<PackageTags>ASP.NET Core Middleware Authorization and Authorization-Policy</PackageTags>
-	<PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
-
+    
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.16" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
+  </ItemGroup>
+    
   <ItemGroup>
     <None Include="..\Assets\RouteGuardianLogo_xxs.png">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath></PackagePath>
+      <Link>RouteGuardianLogo_xxs.png</Link>
     </None>
   </ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.16" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
-	</ItemGroup>
 
 </Project>

@@ -87,7 +87,7 @@ namespace RouteGuardian.Test
                 _jwtHelper.Settings["ValidAudience"]);
 
             // --- Act
-            var secToken = _jwtHelper.ReadToken(token);
+            var secToken = _jwtHelper.ParseToken(token);
             var audiences = secToken!.Audiences.ToArray();
 
             // --- Assert

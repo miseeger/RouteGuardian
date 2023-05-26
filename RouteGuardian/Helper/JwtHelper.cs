@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -72,6 +73,26 @@ namespace RouteGuardian.Helper
             return handler.WriteToken(secToken);
         }
 
+        public string GetTokenFromContext(HttpContext context)
+        {
+            return 
+                context.Request!
+                    .Headers[Const.AuthHeader].ToString()
+                        .Replace(Const.BearerTokenPrefix, string.Empty);
+        }
+
+        public List<Claim>? GetTokenClaimsFromContext(HttpContext context)
+        {
+            return
+                ParseToken(GetTokenFromContext(context))?.Claims.ToList();
+        }
+
+        public string? GetTokenClaimValueFromContext(HttpContext context, string claimType)
+        {
+            return GetTokenClaimsFromContext(context)?
+                .FirstOrDefault(t => t.Type == claimType)?.Value;
+        }
+
         public bool ValidateToken(string authToken)
         {
             authToken = authToken.Replace(Const.BearerTokenPrefix, string.Empty);
@@ -91,7 +112,7 @@ namespace RouteGuardian.Helper
             return true;
         }
 
-        public JwtSecurityToken? ReadToken(string authToken)
+        public JwtSecurityToken? ParseToken(string authToken)
         {
             var jwtSecHandler = new JwtSecurityTokenHandler();
 
@@ -105,7 +126,7 @@ namespace RouteGuardian.Helper
         public string GetSubjectsFromJwtToken(string authToken)
         {
             var subjects = string.Empty;
-            var jwt = ReadToken(authToken);
+            var jwt = ParseToken(authToken);
 
             if (jwt == null)
                 return subjects;
