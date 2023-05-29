@@ -1,5 +1,7 @@
 # ![RouteGuardianLogo_xxs](Assets/RouteGuardianLogo_xxs.png) RouteGuardian
-RouteGuardian - Schützt ihre API-Routen mit der RouteGuardian-Middleware oder der RouteGuardian-Policy - stark inspiriert von [F3-Access](https://github.com/xfra35/f3-access).
+[![NuGet](https://img.shields.io/nuget/v/RouteGuardian.svg)](https://www.nuget.org/packages/RouteGuardian) [![lic](https://img.shields.io/badge/license-MIT-blue)](https://github.com/miseeger/RouteGuardian/blob/main/LICENSE)
+
+RouteGuardian schützt API-Routen mit der RouteGuardian-Middleware oder der RouteGuardian-Policy - stark inspiriert von [F3-Access](https://github.com/xfra35/f3-access).
 
 Der RouteGuardian prüft Regeln, die für eine ressourcenbasierende Autorisierung aufgestellt sind, und gibt je nach Berechtigung den Zugriff für den Anfragenden Benutzer frei. Generell kann das nach der programmatischen Initialisierung einer RouteGuardian-Instanz erfolgen. Die Autorisierung wird dann entweder in einem Basis-Controller vorgenommen oder bei einer Minimal-API, direkt in jedem Endpunkt. Dieser Ansatz ist unter Umständen sehr repititiv und deshalb werden zwei Möglichkeiten angeboten, den RouteGuardian in die Pipeline von ASP.NET einzubinden:
 
