@@ -15,6 +15,12 @@
 	<Copyright>2022 - 2023 MiSeeger</Copyright>
 	<PackageTags>ASP.NET Core Middleware Security Authorization Policy MinimalAPI WebApi Controllers</PackageTags>
 	<PackageIcon>RouteGuardianLogo_xxs.png</PackageIcon>
+	<PackageProjectUrl>https://github.com/miseeger/RouteGuardian</PackageProjectUrl>
+	<PackageLicenseUrl>https://github.com/miseeger/RouteGuardian/blob/main/LICENSE</PackageLicenseUrl>
+	<RepositoryUrl>https://github.com/miseeger/RouteGuardian</RepositoryUrl>
+	<RepositoryType>GIT</RepositoryType>
+	<PackageReleaseNotes>Initial Version of RouteGuardian</PackageReleaseNotes>
+	<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
     
   <ItemGroup>

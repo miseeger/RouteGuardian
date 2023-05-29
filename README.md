@@ -1,5 +1,5 @@
 # ![RouteGuardianLogo_xxs](Assets/RouteGuardianLogo_xxs.png) RouteGuardian
-RouteGuardian - Protects their API routes with RouteGuardian middleware or RouteGuardian policy - heavily inspired by [F3-Access](https://github.com/xfra35/f3-access).
+RouteGuardian - Protects API routes with RouteGuardian middleware or RouteGuardian policy - heavily inspired by [F3-Access](https://github.com/xfra35/f3-access).
 
 RouteGuardian checks rules that are set up for resource-based authorization and, depending on the authorization, releases access for the requesting user. Generally, this can be done after the programmatic initialization of a RouteGuardian instance. Authorization is then done either in a base controller, or in the case of a minimal API, directly in each endpoint. This approach may be very repititive and therefore two ways are offered to include the RouteGuardian in the ASP.NET pipeline:
 
@@ -73,7 +73,7 @@ Here, too, the default policy is set to `deny` and thus the defined rules have t
 
 Die Priorität der defnierten und zu prüfenden Routen erfolgt von der spezifischsten Route zur am wenigsten spezifischen Route. Das bedeutet: Routen mit Wildcards werden nach den spezifischen Routen behandelt:
 
-Diese Routen ...
+These routes ...
 
 ```c#
 var routeGuardian = new RouteGuardian()
