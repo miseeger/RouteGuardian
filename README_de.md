@@ -4,9 +4,9 @@ RouteGuardian - Schützt ihre API-Routen mit der RouteGuardian-Middleware oder d
 Der RouteGuardian prüft Regeln, die für eine ressourcenbasierende Autorisierung aufgestellt sind, und gibt je nach Berechtigung den Zugriff für den Anfragenden Benutzer frei. Generell kann das nach der programmatischen Initialisierung einer RouteGuardian-Instanz erfolgen. Die Autorisierung wird dann entweder in einem Basis-Controller vorgenommen oder bei einer Minimal-API, direkt in jedem Endpunkt. Dieser Ansatz ist unter Umständen sehr repititiv und deshalb werden zwei Möglichkeiten angeboten, den RouteGuardian in die Pipeline von ASP.NET einzubinden:
 
 1) als Middleware - `RouteGuardianMiddleware`
-2) als Authorization Policy - `RouteGuardianPolicy`
+2) als Authorization-Policy - `RouteGuardianPolicy`
 
-Die RouteGuardian-Middleware und die Policy sind grundlegend auf ein gruppenbasiertes Autorisierungs-Szenario ausgelegt, das sowohl die JWT-Authentifizierung und -Autorisierung als auch die Windows-Authentifizierung und -Autorisierung (über Windows Userrgruppen) unterstützt. Bei der Nutzung der Basisfunktionalität des RouteGuardian können die Prüfrichtlinien je nach Anforderung implementiert werden.
+Die RouteGuardian-Middleware und die Policy sind grundlegend auf ein gruppenbasiertes Authorisierungs-Szenario ausgelegt, das sowohl die JWT-Authentifizierung und -Autorisierung als auch die Windows-Authentifizierung und -Autorisierung (über Windows Usergruppen) unterstützt. Bei der Nutzung der Basisfunktionalität des RouteGuardian können die Prüfrichtlinien je nach Anforderung implementiert werden.
 
 Zusätzlich stellt der RouteGuardian einen JwtHelper für die Webtoken-Verarbeitung  und eine WinHelper zur Verarbeitung von AD-Gruppenberechtigungen aus der Windows Authentication bereit. Letzterer implementiert auch einen GroupsCache für die WinAuth.
 
@@ -99,9 +99,78 @@ var routeGuardian = new RouteGuardian()
 
 ### Mehrere HTTP-Verben
 
+Ausgewählte HTTP-Verben für eine Route können mit einer Regel versehen werden. Dabei müssen diese nicht zwingend als eine Regel definiert werden. Durch die Trennung mit der Pipe (`|`) als Trennzeichen werden mehrere Verben für eine Regel hinterlegt:
+
+```c#
+var routeGuardian = new RouteGuardian()
+	.Clear()
+	.DefaultPolicy(GuardPolicy.Allow)
+	.Deny("POST|PUT|DELETE", "/blog/Entry", "*") // (1)
+    .Allow("*", "/blog/entry", "ADMIN");         // (2)
+```
+
+1. Für alle Subjects wird HTTP `POST`, `PUT` und `DELETE` verweigert.
+2. Nur die (Rolle) `ADMIN` hat Zugriff auf alle HTTP-Verben des Pfads `/blog/entry`.
+
 ### Mehrere Subjects (berechtige Objekte, wie z. B. Rollen)
 
+So wie es möglich ist, mehrere HTTP-Verben für eine Regel zu hinterlegen, ist es auch möglich, mehrere Subjects für eine Regel zu berücksichtigen:
+
+```c#
+var routeGuardian = new RouteGuardian()
+	.Clear()
+    .DefaultPolicy(GuardPolicy.Allow)
+    .Deny("POST|PUT|DELETE", "/blog/entry", "*") // (1)
+    .Allow("*", "/blog/entry", "ADMIN");         // (2)
+```
+
+​	Erklärung: s. o.
+
+Im Anwendungsfall der Prüfung eines Zugriffs auf eine Route (mit `IsGranted()`, ist es ebenso möglich, mehrere Subjects zur Prüfung heranziehen, wenn der anfragendes Benutzer z. B. mehrere Berechtigungsrollen besitzt. Hier ein Beispiel aus den Tests zum RouteGuardian, die diese Anwendung klar machen sollen*:
+
+```c#
+Assert.IsTrue(
+    routeGuardian.IsGranted("GET", "/blog/entry", "Client|CUSTOMER")
+    && !routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|customer")
+    && routeGuardian.IsGranted("PUT", "/blog/entry", "CLIENT|admin")
+);
+```
+
+​	* Alle Angaben hier werden ungeachtet der Groß-/Kleinschreibung behandelt. 
+
 ### Einlesen der Regeln aus einer Konfigurationsdatei
+
+Eine programmatisch festgelegtes Regel-Set für den Zugriff auf bestimmte Routen kann unter Umständen nicht die beste Lösung sein, weil Änderungen eine Neukompilierung und ein erneutes Publishing des Projekts bedingt. Eine Abhilfe schafft hier die Möglichkeit, eine Konfigurationsdatei mit der Default-Policy und den Regeln für die Endpunkte zu hinterlegen. Diese Datei muss den Namen `access.json` tragen und im Hauptverzeichnis der Anwendung liegen. Sie hat als Minimalkonfiguration folgende Ausprägung:
+
+```json
+{
+  "default": "deny", // (1)
+  "rules": []        // (2)
+}
+```
+
+1. Alle Routen werden verboten (Need-To-Know Prinzip)
+2. Es werden keine Regeln definiert.
+
+Die Regeln werden, ähnlich wie bei der programmatischen Konfiguration, angegeben. Dabei werden die Segmente (Policy, HTTP-Verb, Route, Subjects) durch **ein(!)** Leerzeichen getrennt.
+
+```json
+{
+  "default": "deny",
+  "rules": [
+    "allow GET /foo/bar/admin ADMIN|PROD",
+    "deny POST /foo/bar/admin *",
+    "allow * /admin ADMIN|PROD",
+    "deny * /admin/part2 *",
+    "allow GET /api/test/test ADMIN",
+    "deny GET /api/test/xyz ADMIN"
+  ] 
+}
+```
+
+Auch hier gilt: Bei allen Angaben wird die Groß-/Kleinschreibung ignoriert.
+
+> Das Vorhandensein der Datei `access.json` schließt nicht aus, dass programmatisch je nach Anforderung doch fixe Regeln zum RouteGuardian hinzugefügt werden.
 
 ## Helper
 
@@ -254,11 +323,31 @@ Die einzige Information, die die Policy zur Konfiguration benötigt, ist der Pfa
 
 #### Verwendung der RouteGuardianPolicy
 
-Dieses kurze Code-Beispiel zeigt die Verwendung der RouteGuardianPolicy in einer ASP.NET Minimal-API:
+Dieses kurze Code-Beispiel zeigt die Verwendung der RouteGuardianPolicy an einem sehr einfachen Minimal-API-Endpunkt, an dem tatsächlich nur die Methode `RequireAuthorization` mit der Angabe der registrierten Policy "RouteGuardian" angehängt wird.
 
 ```c#
-
+app.MapGet("/helloworld", () => "Hello World!")
+    .RequireAuthorization("RouteGuardian");
 ```
+
+In einem Controller im MVC-Stil wird der Endpunkt über das `[Authorize]`-Attribut gesichert:
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MyApi.Controllers;
+
+// [Authorize(Policy = "RouteGuardian")]                    // (1)
+public class MyController : Controller
+{
+    [Authorize(Policy = "RouteGuardian")]                   // (2) 
+    public IActionResult Hello() => "Hello secret World!";
+}
+```
+
+1. Mit dem Attribut können entweder alle Controller-Endpunkte ...
+2. ... oder nur gezielte Endpunkte geschützt werden
 
 ## RouteGuardianMiddleware
 
@@ -289,7 +378,7 @@ app.MapControllers();
 app.Run();
 ```
 
-Die einzige Information, die die RouteGuardian Middleware für die Konfiguration benötigt, ist der Basispfad der zu schützenden Endpunkte, hier "/api". Die zu berücksichtigenden Regeln werden beim Starten der Anwendung aus der Definitionsdatei mit dem Namen `access.json`  hinterlegt. Diese muss sich im Basisverzeichnis der Anwendung befinden.
+Die einzige Information, die die RouteGuardian Middleware für die Konfiguration benötigt, ist der Basispfad der zu schützenden Endpunkte, hier "/api". Die zu berücksichtigenden Regeln werden beim Starten der Anwendung aus der Definitionsdatei mit dem Namen `access.json`  gelesen (siehe weiter oben).
 
 > Wird die RouteGuardianMiddleware in einer Anwendung verwendet, benötigt man keine RouteGuardianPolicy.
 
@@ -299,9 +388,32 @@ Die RouteGuardian-Bibliothek bringt noch ein paar Goodies mit, die nicht unbedin
 
 ### GlobalExceptionHandlerMiddleware
 
-### StringExtensions
+Die `GlobalExceptionHandlerMiddleware` wird ganz an den Anfang der Request-Pipeline gesetzt und fängt globale, nicht behandelte Exceptions ab, loggt diese und gibt eine 500er HTTP-Response mit dem Text der Exception-Message zurück, wenn dies gewünscht ist. Wenn nicht, dann wird eine allgemeingültige Meldung zurückgegeben.
 
+```c#
+...
 
+// ===== Pipeline (Middleware) ================================================
+var app = builder.Build();
+
+app.UseGlobalExceptionHandler(true); // (1)
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+...
+
+app.Run();
+```
+
+1. Der globale Exceptionhandler wird als erstes Glied in die Request-Pipeline eingebunden und die qualifizierte Fehlermeldung eingeschaltet. Ohne Angabe/Parameter ist die Rückgabe von Fehlermeldungen (als Default) unterbunden.
+
+### StringExtension(s)
+
+Die einzige String-Extension in dieser Bibliothek bietet die Errechnung eines MD5-Hashstrings. Sie erweitert den String-Typ um die Methode `ComputeMd5(string)`. Anwendung findet sie im RouteGuardian beim "hashen" der AD-Berechtigungsgruppen für den `WinUserGroupsCache`.
 
 ## Lizenzbedingungen
 
