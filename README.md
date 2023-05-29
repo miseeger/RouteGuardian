@@ -22,7 +22,7 @@ In turn, you can reverse the policy accordingly if you generally want all but a 
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.DefaultPolicy(GuardPolicy.Allow);
+    .DefaultPolicy(GuardPolicy.Allow);
 ```
 
 ### Definition of access rules
@@ -31,7 +31,7 @@ Access to a route is either allowed or denied. The HTTP method(s) can be specifi
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin", "ADMIN|PROD")   // (1)
+    .Allow("*", "/admin", "ADMIN|PROD")   // (1)
     .Deny("*", "/admin/part2", "*")       // (2)
     .Allow("*", "/admin/part2", "ADMIN"); // (3)
 ```
@@ -56,9 +56,9 @@ An example of using `*` as a wildcard might look like this:
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin*", "ADMIN")               // (1)
+    .Allow("*", "/admin*", "ADMIN")               // (1)
     .Allow("*", "/public*, "*")                   // (2)    
-	.Allow("*", "/*/edit", "ADMIN")               // (3)
+    .Allow("*", "/*/edit", "ADMIN")               // (3)
     .Allow("*", "/account/show/{num}", "FINANCE") // (4)
 ```
 
@@ -77,9 +77,9 @@ Diese Routen ...
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin*", "ADMIN")        
+    .Allow("*", "/admin*", "ADMIN")        
     .Allow("*", "/admin/blog/foo", "ADMIN")
-	.Allow("*", "/admin/blog", "ADMIN")        
+    .Allow("*", "/admin/blog", "ADMIN")        
     .Allow("*", "/admin/blog/foo/bar","ADMIN")
     .Allow("*", "/admin/blog/*/bar","ADMIN")
 ```
@@ -91,8 +91,8 @@ var routeGuardian = new RouteGuardian()
     .Allow("*", "/admin/blog/foo/bar","ADMIN")
     .Allow("*", "/admin/blog/*/bar","ADMIN")    
     .Allow("*", "/admin/blog/foo", "ADMIN")
-	.Allow("*", "/admin/blog", "ADMIN")        
-	.Allow("*", "/admin*", "ADMIN")        
+    .Allow("*", "/admin/blog", "ADMIN")        
+    .Allow("*", "/admin*", "ADMIN")        
 ```
 
 > **Wichtig:** Es greift die erste Regel, zu der der angefragte Pfad passt.
@@ -103,9 +103,9 @@ Selected HTTP verbs for a route can be assigned a rule. These do not necessarily
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Clear()
-	.DefaultPolicy(GuardPolicy.Allow)
-	.Deny("POST|PUT|DELETE", "/blog/Entry", "*") // (1)
+    .Clear()
+    .DefaultPolicy(GuardPolicy.Allow)
+    .Deny("POST|PUT|DELETE", "/blog/Entry", "*") // (1)
     .Allow("*", "/blog/entry", "ADMIN");         // (2)
 ```
 
@@ -118,7 +118,7 @@ Just as it is possible to store multiple HTTP verbs for a rule, it is also possi
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Clear()
+    .Clear()
     .DefaultPolicy(GuardPolicy.Allow)
     .Deny("POST|PUT|DELETE", "/blog/entry", "*") // (1)
     .Allow("*", "/blog/entry", "ADMIN");         // (2)
@@ -183,19 +183,19 @@ When instantiating the `JwtHelper` a configuration is required, which is either 
 ```json
 /// appsettings[.Development|.Production].json
 {
-	...
+    ...
     "RouteGuardian": {
-		"JwtAuthentication": {
-			"ApiSecretEnVarName": "JwtDevSecret",
-			"ValidateIssuer": "true",
-			"ValidateAudience": "true",
-			"ValidateIssuerSigningKey": "true",
-			"ValidateLifetime": "false",
-			"ValidIssuer": "RouteGuardian",
-			"ValidAudience": "RouteGuardianTests"
+        "JwtAuthentication": {
+            "ApiSecretEnVarName": "JwtDevSecret",
+            "ValidateIssuer": "true",
+            "ValidateAudience": "true",
+            "ValidateIssuerSigningKey": "true",
+            "ValidateLifetime": "false",
+            "ValidIssuer": "RouteGuardian",
+            "ValidAudience": "RouteGuardianTests"
         }
-	},
-	...
+    },
+    ...
 }
 ```
 
@@ -239,7 +239,7 @@ No configuration is required for the Windows Helper. It works out-of-the-box.
 
 #### Interface
 
-| Methode                               | Rückgabe | Funktion                                                     |
+| Method                                | Result   | Function                                                     |
 | ------------------------------------- | -------- | ------------------------------------------------------------ |
 | GetWinUserGroupsHash(identity)        | `string` | Gets the hash value of all AD grups of the authenticated user (`WindowsIdentity`). The hash is supplied as an MD5 hash. |
 | GetSubjectsFromWinUserGroups(context) | `string` | Returns all RouteGuardian subjects (plain text of AD groups) of an authenticated user from the passed `HttpContext`. This method uses the Windows User Groups cache already described. |

@@ -22,7 +22,7 @@ Im Gegenzug kann man die Policy entsprechend umkehren, wenn generell alle Ressou
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.DefaultPolicy(GuardPolicy.Allow);
+    .DefaultPolicy(GuardPolicy.Allow);
 ```
 
 ### Definition der Zugriffsregeln
@@ -31,7 +31,7 @@ Der Zugriff auf eine Route wird entweder erlaubt oder verweigert. Dabei kann die
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin", "ADMIN|PROD")   // (1)
+    .Allow("*", "/admin", "ADMIN|PROD")   // (1)
     .Deny("*", "/admin/part2", "*")       // (2)
     .Allow("*", "/admin/part2", "ADMIN"); // (3)
 ```
@@ -56,9 +56,9 @@ Ein Beispiel für den Einsatz von `*` als Wildcard könnte so aussehen:
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin*", "ADMIN")               // (1)
+    .Allow("*", "/admin*", "ADMIN")               // (1)
     .Allow("*", "/public*, "*")                   // (2)    
-	.Allow("*", "/*/edit", "ADMIN")               // (3)
+    .Allow("*", "/*/edit", "ADMIN")               // (3)
     .Allow("*", "/account/show/{num}", "FINANCE") // (4)
 ```
 
@@ -77,9 +77,9 @@ Diese Routen
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin*", "ADMIN")        
+    .Allow("*", "/admin*", "ADMIN")        
     .Allow("*", "/admin/blog/foo", "ADMIN")
-	.Allow("*", "/admin/blog", "ADMIN")        
+    .Allow("*", "/admin/blog", "ADMIN")        
     .Allow("*", "/admin/blog/foo/bar","ADMIN")
     .Allow("*", "/admin/blog/*/bar","ADMIN")
 ```
@@ -91,8 +91,8 @@ var routeGuardian = new RouteGuardian()
     .Allow("*", "/admin/blog/foo/bar","ADMIN")
     .Allow("*", "/admin/blog/*/bar","ADMIN")    
     .Allow("*", "/admin/blog/foo", "ADMIN")
-	.Allow("*", "/admin/blog", "ADMIN")        
-	.Allow("*", "/admin*", "ADMIN")        
+    .Allow("*", "/admin/blog", "ADMIN")        
+    .Allow("*", "/admin*", "ADMIN")        
 ```
 
 **Wichtig:** Es greift die erste Regel, zu der der angefragte Pfad passt.
@@ -103,9 +103,9 @@ Ausgewählte HTTP-Verben für eine Route können mit einer Regel versehen werden
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Clear()
-	.DefaultPolicy(GuardPolicy.Allow)
-	.Deny("POST|PUT|DELETE", "/blog/Entry", "*") // (1)
+    .Clear()
+    .DefaultPolicy(GuardPolicy.Allow)
+    .Deny("POST|PUT|DELETE", "/blog/Entry", "*") // (1)
     .Allow("*", "/blog/entry", "ADMIN");         // (2)
 ```
 
@@ -118,7 +118,7 @@ So wie es möglich ist, mehrere HTTP-Verben für eine Regel zu hinterlegen, ist 
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Clear()
+    .Clear()
     .DefaultPolicy(GuardPolicy.Allow)
     .Deny("POST|PUT|DELETE", "/blog/entry", "*") // (1)
     .Allow("*", "/blog/entry", "ADMIN");         // (2)
@@ -183,19 +183,19 @@ Beim Instanzieren des `JwtHelper` wird eine Konfiguration benötigt, die wahlwei
 ```json
 /// appsettings[.Development|.Production].json
 {
-	...
+    ...
     "RouteGuardian": {
-		"JwtAuthentication": {
-			"ApiSecretEnVarName": "JwtDevSecret",
-			"ValidateIssuer": "true",
-			"ValidateAudience": "true",
-			"ValidateIssuerSigningKey": "true",
-			"ValidateLifetime": "false",
-			"ValidIssuer": "RouteGuardian",
-			"ValidAudience": "RouteGuardianTests"
+        "JwtAuthentication": {
+            "ApiSecretEnVarName": "JwtDevSecret",
+            "ValidateIssuer": "true",
+            "ValidateAudience": "true",
+            "ValidateIssuerSigningKey": "true",
+            "ValidateLifetime": "false",
+            "ValidIssuer": "RouteGuardian",
+            "ValidAudience": "RouteGuardianTests"
         }
-	},
-	...
+    },
+    ...
 }
 ```
 
