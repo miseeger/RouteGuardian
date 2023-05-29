@@ -12,9 +12,10 @@ namespace RouteGuardian.Extension
             return app;
         }
         
-        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
+        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app, 
+            bool returnQualifiedResponse = false)
         {
-            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>(returnQualifiedResponse);
             return app;
         }
     }

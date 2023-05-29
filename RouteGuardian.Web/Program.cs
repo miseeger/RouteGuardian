@@ -47,13 +47,13 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 // ===== Pipeline (Middleware) ================================================
 var app = builder.Build();
 
+app.UseGlobalExceptionHandler(true);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseGlobalExceptionHandler();
 
 app.UseHttpsRedirection();
 

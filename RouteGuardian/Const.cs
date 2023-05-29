@@ -24,7 +24,8 @@
         public const string AlphaNumericWildCard = "{str}";
         public const string AlphaNumericWildCardRegEx = @"\w+";
         public static readonly string[] HttpVerbs = {"GET","HEAD","POST","PUT","PATCH","DELETE","CONNECT"};
-        public const string SetReigsterAdditionalGroupsFromDb= "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
+        public const string SetRegisterAdditionalGroupsFromDb = "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
+        public const string GlobalException = "A global exception occurred and was logged!";
 
 
     }

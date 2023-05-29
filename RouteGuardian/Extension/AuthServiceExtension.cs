@@ -49,7 +49,7 @@ namespace RouteGuardian.Extension
             services.AddSingleton<IWinHelper>(winHelper);
         }
         
-        public static void AddRouteGuardianPolicy(this IServiceCollection services, string accessFileName)
+        public static void AddRouteGuardianPolicy(this IServiceCollection services, string accessFileName = "")
         {
             var routeGuardian = new RouteGuardian(accessFileName);
             services.AddSingleton(routeGuardian);
