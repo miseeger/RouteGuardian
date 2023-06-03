@@ -51,17 +51,18 @@ Die oben definierten Regeln (Default Policy = `deny`), wirken sich wie folgt aus
 Die Routen, für die die Zugriffsregeln festgelegt werden, können Wildcards enthalten. Dabei werden folgende Wildcards unterstützt:
 
 - `*` - alle Routen-Fragmente, die an der Stelle des Asterisk stehen.
-- `{num}` - eine beliebige Ziffernfolge
-- `{str} ` - eine Folge beliebiger, alphanumerischer Zeichen
+- `{int}` - eine Ganzzahl, mit Vorzeichen (RegEx Pattern: `[+-]?(?<!\.)\b[0-9]+\b(?!\.[0-9]`)
+- `{dec}` - eine Dezimalzahl, mit Vorzeichen und Punkt als Dezimaltrennzeichen (RegEx Pattern: `[+-]?(?:\d*\.)?\d+`)
+- `{str} ` - eine Folge beliebiger, alphanumerischer Zeichen. Als Sonderzeichen ist der Bindestricht, der Unterstricht und auch das Leerzeichen erlaubt (RegEx Pattern: `[a-zA-Z0-9_-]+`)
+- {guid} - eine GUID (RegEx Pattern: `[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?`)
 
 Ein Beispiel für den Einsatz von `*` als Wildcard könnte so aussehen:
 
 ```c#
 var routeGuardian = new RouteGuardian()
-    .Allow("*", "/admin*", "ADMIN")               // (1)
-    .Allow("*", "/public*, "*")                   // (2)    
-    .Allow("*", "/*/edit", "ADMIN")               // (3)
-    .Allow("*", "/account/show/{num}", "FINANCE") // (4)
+	.Allow("*", "/admin*", "ADMIN")                 // (1)
+    .Allow("*", "/public*, "*")                     // (2)    
+	.Allow("*", "/*/edit", "ADMIN")                 // (3)
 ```
 
 Auch hier ist die Default Policy auf `deny` gestellt und somit wirken sich die definierten Regeln wie folgt aus:
@@ -69,7 +70,16 @@ Auch hier ist die Default Policy auf `deny` gestellt und somit wirken sich die d
 1) Alle Routen, die mit`/admin` beginnen, sind nur für die Gruppe `ADMIN` freigegeben.
 2) Alle Routen, die mit `/public` beginnen, sind für alle Benutzer freigegeben.
 3) Routen, deren Pfad auf `edit` endet, sind ausschließlich für die Gruppe `ADMIN` erlaubt.
-4) Die Route `/account/show/`, gefolgt von einer Ziffernfolge (z. b. Kontonummer), ist für die Gruppe `FINANCE` freigebeben.
+
+Hier einige Beispiele zur Verwendung der "konkreten" Wildcards, die auch eine Prüfung auf Korrektheit der für den Platzhalter angegebenen Werte, beinhaltet
+
+```c#
+var routeGuardian = new RouteGuardian()
+    .Allow("*", "/products/{guid}", "*")            
+    .Allow("*", "/products/{guid}/load/{dec}", "*")
+    .Allow("*", "/products/report/page/{int}", "*")
+    .Allow("*", "/products/report/{str}", "*"); 
+```
 
 ### Priorität der Pfade/Routen
 

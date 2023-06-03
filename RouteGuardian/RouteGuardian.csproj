@@ -5,10 +5,10 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<AssemblyVersion>1.0.0</AssemblyVersion>
-	<FileVersion>1.0.0</FileVersion>
+	<AssemblyVersion>1.0.1</AssemblyVersion>
+	<FileVersion>1.0.1</FileVersion>
 	<PackageId>RouteGuardian</PackageId>
-	<PackageVersion>1.0.0</PackageVersion>
+	<PackageVersion>1.0.1</PackageVersion>
 	<Title>RouteGuardian</Title>
 	<Description>RouteGuardian - Protects your API routes with the RouteGuardian Middleware or Authorization-Policy - heavily inspired by F3-Access</Description>
 	<Authors>MiSeeger</Authors>
@@ -19,7 +19,7 @@
 	<PackageLicenseUrl>https://github.com/miseeger/RouteGuardian/blob/main/LICENSE</PackageLicenseUrl>
 	<RepositoryUrl>https://github.com/miseeger/RouteGuardian</RepositoryUrl>
 	<RepositoryType>GIT</RepositoryType>
-	<PackageReleaseNotes>Initial Version of RouteGuardian</PackageReleaseNotes>
+	<PackageReleaseNotes>Improvements for handling typed "Wildcards" (aka Placeholders) to check for integers, decimals, guids and alphanumerics in routes.</PackageReleaseNotes>
 	<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
     

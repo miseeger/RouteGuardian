@@ -53,8 +53,10 @@ The rules defined above (Default Policy = `deny`), have the following effect:
 The routes for which the access rules are set can contain wildcards. The following wildcards are supported:
 
 - `*` - all route fragments that are in the place of the asterisk.
-- `{num}` - any sequence of digits
-- `{str} ` - a sequence of arbitrary, alphanumeric characters
+- `{int}` - an integer, signed (RegEx Pattern: `[+-]?(?<!\.)\b[0-9]+\b(?!\.[0-9]`)
+- `{dec}` - a decimal number, with sign and dot as decimal separator (RegEx Pattern: `[+-]?(?:\d*\.)?\d+`)
+- `{str} ` - a sequence of any alphanumeric characters. The hyphen, the underscore and also the space character are allowed as special characters (RegEx Pattern: `[a-zA-Z0-9_-]+`).
+- `{guid}` - a GUID (RegEx Pattern: `[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?`)
 
 An example of using `*` as a wildcard might look like this:
 
@@ -62,8 +64,7 @@ An example of using `*` as a wildcard might look like this:
 var routeGuardian = new RouteGuardian()
     .Allow("*", "/admin*", "ADMIN")               // (1)
     .Allow("*", "/public*, "*")                   // (2)    
-    .Allow("*", "/*/edit", "ADMIN")               // (3)
-    .Allow("*", "/account/show/{num}", "FINANCE") // (4)
+    .Allow("*", "/*/edit", "ADMIN");              // (3)
 ```
 
 Here, too, the default policy is set to `deny` and thus the defined rules have the following effect:
@@ -71,7 +72,16 @@ Here, too, the default policy is set to `deny` and thus the defined rules have t
 1) All routes starting with `/admin` are enabled for the `ADMIN` group only.
 2) All routes starting with `/public` are shared with all users.
 3) Routes whose path ends in `edit` are allowed only for the `ADMIN` group.
-4) The route `/account/show/` followed by a sequence of digits (e.g. account number) is enabled for the group `FINANCE`.
+
+Here are some examples of the use of the "concrete" wildcards, which also includes a check for the correctness of the values given for the wildcard
+
+```c#
+var routeGuardian = new RouteGuardian()
+    .Allow("*", "/products/{guid}", "*")            
+    .Allow("*", "/products/{guid}/load/{dec}", "*")
+    .Allow("*", "/products/report/page/{int}", "*")
+    .Allow("*", "/products/report/{str}", "*"); 
+```
 
 ### Priority of paths/routes
 

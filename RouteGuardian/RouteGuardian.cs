@@ -152,8 +152,10 @@ namespace RouteGuardian
             foreach (var rule in rulesToMatch)
             {
                 var pathPattern = rule.Path
-                    .Replace(Const.NumericWildCard, Const.NumericWildCardRegEx)
+                    .Replace(Const.IntegerWildCard, Const.IntegerWildCardRegEx)
+                    .Replace(Const.DecimalWildCard, Const.DecimalWildCardRegEx)
                     .Replace(Const.AlphaNumericWildCard, Const.AlphaNumericWildCardRegEx)
+                    .Replace(Const.GuidWildCard, Const.GuidWildCardRegEx)
                     .Replace(Const.WildCard, Const.WildCardRegEx);
 
                 if (Regex.Match(path, $"^{pathPattern}$").Success)

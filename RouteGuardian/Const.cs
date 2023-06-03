@@ -1,5 +1,8 @@
 ﻿namespace RouteGuardian
 {
+    // References:
+    // - https://www.geeksforgeeks.org/how-to-validate-guid-globally-unique-identifier-using-regular-expression/
+    
     public static class Const
     {
         public const char SeparatorPipe = '|';
@@ -19,14 +22,16 @@
         public const string AnonymousRoleName = "ANONYMOUS";
         public const string WildCard = "*";
         public const string WildCardRegEx = @"[\/?\w+]*";
-        public const string NumericWildCard = "{num}";
-        public const string NumericWildCardRegEx = @"\d*";
+        public const string IntegerWildCard = "{int}";
+        public const string IntegerWildCardRegEx = @"[+-]?(?<!\.)\b[0-9]+\b(?!\.[0-9])";
+        public const string DecimalWildCard = "{dec}";
+        public const string DecimalWildCardRegEx = @"[+-]?(?:\d*\.)?\d+";
         public const string AlphaNumericWildCard = "{str}";
-        public const string AlphaNumericWildCardRegEx = @"\w+";
+        public const string AlphaNumericWildCardRegEx = @"[a-zA-Z0-9_-]+";
+        public const string GuidWildCard = "{guid}";
+        public const string GuidWildCardRegEx = "[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?";
         public static readonly string[] HttpVerbs = {"GET","HEAD","POST","PUT","PATCH","DELETE","CONNECT"};
-        public const string SetRegisterAdditionalGroupsFromDb = "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
+        public const string SetReigsterAdditionalGroupsFromDb= "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
         public const string GlobalException = "A global exception occurred and was logged!";
-
-
     }
 }

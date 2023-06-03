@@ -85,6 +85,34 @@ namespace RouteGuardian.Test
                            && routeGuardian.IsGranted("GET", "/admin/foo/bar", "ADMin")
                            && routeGuardian.IsGranted("GET", "/admin/special/path")
                            && routeGuardian.IsGranted("GET", "/admin/special/Path", "admin"));
+
+            routeGuardian
+                .Clear()
+                .Allow("*", "/products/{guid}", "*")
+                .Allow("*", "/products/{guid}/load/{dec}", "*")
+                .Allow("*", "/products/report/page/{int}", "*")
+                .Allow("*", "/products/report/{str}", "*");
+
+            Assert.IsTrue(routeGuardian.IsGranted("GET",
+                              $"/products/{new Guid("017e2820-5171-405d-bada-3893a20bb479").ToString()}")
+                          && !routeGuardian.IsGranted("GET", "/products/1234-D87914-99")
+                          && routeGuardian.IsGranted("GET",
+                              $"/products/{new Guid("017e2820-5171-405d-bada-3893a20bb479").ToString()}/load/12.1")
+                          && routeGuardian.IsGranted("GET",
+                              $"/products/{new Guid("017e2820-5171-405d-bada-3893a20bb479").ToString()}/load/-12.1")
+                          && !routeGuardian.IsGranted("GET", "/products/1234-D87914-99/load/12.1")
+                          && !routeGuardian.IsGranted("GET", 
+                              $"/products/{new Guid("017e2820-5171-405d-bada-3893a20bb479").ToString()}/load/12x"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/products/report/page/12")
+                          && routeGuardian.IsGranted("GET", "/products/report/page/-12")
+                          && routeGuardian.IsGranted("GET", "/products/report/page/+12")
+                          && !routeGuardian.IsGranted("GET", "/products/report/page/12.1")
+                          && !routeGuardian.IsGranted("GET", "/products/report/page/12x"));
+            Assert.IsTrue(routeGuardian.IsGranted("GET", "/products/report/Test-String_123")
+                          && routeGuardian.IsGranted("GET", "/products/report/017e2820-5171-405d-bada-3893a20bb479")
+                          && routeGuardian.IsGranted("GET", "/products/report/12345")
+                          && !routeGuardian.IsGranted("GET", "/products/report/#12345$")
+                          && !routeGuardian.IsGranted("GET", "/products/report/123.45"));
         }
 
         [TestMethod]
