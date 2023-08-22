@@ -2,6 +2,6 @@
 
 public class WinUserGroups
 {
-    public string Groups { get; set; }
-    public string HashCode { get; set; }
+    public string? Groups { get; set; }
+    public string? HashCode { get; set; }
 }

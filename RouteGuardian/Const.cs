@@ -13,7 +13,7 @@
         public const string BearerTokenPrefix = "Bearer ";
         public const string NegotiateTokenPrefix = "Negotiate ";
         public const string NtlmTokenPrefix = "Negotiation ";
-        public const string Ntlm = "NTLM";
+        public const string NtlmTypes = "Negotiate|NTLM";
         public const string JwtClaimTypeRole = "rol";
         public const string JwtClaimTypeIssuedAt = "iat";
         public const string JwtClaimTypeUsername = "name";
@@ -31,7 +31,8 @@
         public const string GuidWildCard = "{guid}";
         public const string GuidWildCardRegEx = "[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?";
         public static readonly string[] HttpVerbs = {"GET","HEAD","POST","PUT","PATCH","DELETE","CONNECT"};
-        public const string SetReigsterAdditionalGroupsFromDb= "RouteGuardian:WinAuthentication:SetReigsterAdditionalGroupsFromDb";
+        public const string WinAuthRegisterAdditionalGroupsFromDb = "RouteGuardian:WinAuthentication:ReigsterAdditionalGroupsFromDb";
+        public const string WinAuthActiveDirectoryDomain = "RouteGuardian:WinAuthentication:ActiveDirectoryDomain"; 
         public const string GlobalException = "A global exception occurred and was logged!";
     }
 }

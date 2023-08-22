@@ -60,15 +60,15 @@ namespace RouteGuardian.Middleware
                     var authHeader = request.Headers[Const.AuthHeader].ToString();
                     var user = context.User;
                     
-                    if (user.Identity!.AuthenticationType == Const.Ntlm  
-                        || (user.Identity!.AuthenticationType != Const.Ntlm && !string.IsNullOrEmpty(authHeader)))
+                    if (Const.NtlmTypes.Contains(user.Identity.AuthenticationType!)  
+                        || (!Const.NtlmTypes.Contains(user.Identity.AuthenticationType!) && !string.IsNullOrEmpty(authHeader)))
                     {
                         var subjects = string.Empty;
                         
                         if (authHeader.StartsWith(Const.BearerTokenPrefix))
                             subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
 
-                        if (user.Identity!.AuthenticationType == Const.Ntlm)
+                        if (Const.NtlmTypes.Contains(user.Identity.AuthenticationType!))
                             subjects = _winHelper.GetSubjectsFromWinUserGroups(context);
                         
                         if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects!))

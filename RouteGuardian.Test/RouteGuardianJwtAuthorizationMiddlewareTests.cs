@@ -19,9 +19,9 @@ namespace RouteGuardian.Test
     //[TestClass]
     public class RouteGuardianJwtAuthorizationMiddlewareTests
     {
-        private static IConfiguration _config;
-        private static JwtHelper _jwtHelper;
-        private static string _secretKey;
+        private static IConfiguration? _config;
+        private static JwtHelper? _jwtHelper;
+        private static string? _secretKey;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
@@ -61,7 +61,7 @@ namespace RouteGuardian.Test
                 }).StartAsync();
 
             var server = host.GetTestServer();
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey);
+            var token = _jwtHelper!.GenerateToken(new List<Claim>(), _secretKey!);
 
             // Arrange - Request & Act
             var bodyStream = new MemoryStream();
@@ -109,7 +109,7 @@ namespace RouteGuardian.Test
                 }).StartAsync();
 
             var server = host.GetTestServer();
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey);
+            var token = _jwtHelper!.GenerateToken(new List<Claim>(), _secretKey!);
 
             // Arrange - Request & Act
             var bodyStream = new MemoryStream();
@@ -159,7 +159,7 @@ namespace RouteGuardian.Test
                 }).StartAsync();
 
             var server = host.GetTestServer();
-            var token = _jwtHelper.GenerateToken(new List<Claim>(), _secretKey);
+            var token = _jwtHelper!.GenerateToken(new List<Claim>(), _secretKey!);
 
             // Arrange - Request & Act
             var bodyStream = new MemoryStream();
@@ -214,13 +214,13 @@ namespace RouteGuardian.Test
 
             var server = host.GetTestServer();
 
-            var jwtSettings = _config.GetSection("RouteGuardian:JwtAuthentication");
-            var token = _jwtHelper.GenerateToken(
+            var jwtSettings = _config!.GetSection("RouteGuardian:JwtAuthentication");
+            var token = _jwtHelper!.GenerateToken(
                 new List<Claim>()
                 {
                     new Claim(Const.JwtClaimTypeRole, "ADMIN|PROD")
                 }
-                , _secretKey, "TestUser", "0815", jwtSettings["ValidIssuer"],
+                , _secretKey!, "TestUser", "0815", jwtSettings["ValidIssuer"],
                 jwtSettings["ValidAudience"]);
 
             // Arrange - Request & Act

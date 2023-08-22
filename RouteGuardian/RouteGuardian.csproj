@@ -5,10 +5,10 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<AssemblyVersion>1.0.1</AssemblyVersion>
-	<FileVersion>1.0.1</FileVersion>
+	<AssemblyVersion>1.0.2</AssemblyVersion>
+	<FileVersion>1.0.2</FileVersion>
 	<PackageId>RouteGuardian</PackageId>
-	<PackageVersion>1.0.1</PackageVersion>
+	<PackageVersion>1.0.2</PackageVersion>
 	<Title>RouteGuardian</Title>
 	<Description>RouteGuardian - Protects your API routes with the RouteGuardian Middleware or Authorization-Policy - heavily inspired by F3-Access</Description>
 	<Authors>MiSeeger</Authors>
@@ -25,8 +25,8 @@
     
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.16" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.21" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.21" />
   </ItemGroup>
     
   <ItemGroup>

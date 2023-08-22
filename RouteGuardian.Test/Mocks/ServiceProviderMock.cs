@@ -11,6 +11,6 @@ public class ServiceProviderMock : Mock<IServiceProvider>
         Setup(sp => sp.GetService(typeof(IJwtHelper)))
             .Returns(new JwtHelper(config));
         Setup(sp => sp.GetService(typeof(IWinHelper)))
-            .Returns(new WinHelper());
+            .Returns(new WinHelper(config));
     }
 }

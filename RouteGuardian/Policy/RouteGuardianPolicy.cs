@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using RouteGuardian.Helper;
-using RouteGuardian.Middleware;
 
 namespace RouteGuardian.Policy;
 
@@ -14,24 +13,24 @@ public class RouteGuardianPolicy
 
     public class AuthorizationHandler : AuthorizationHandler<Requirement>
     {
-        private IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<RouteGuardianPolicy> _logger;
-        private RouteGuardian _routeGuardian;
-        private IWinHelper _winHelper;
-        private IJwtHelper _jwtHelper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<AuthorizationHandler> _logger;
+        private readonly RouteGuardian _routeGuardian;
+        private readonly IWinHelper _winHelper;
+        private readonly IJwtHelper _jwtHelper;
 
         public AuthorizationHandler(
-            IHttpContextAccessor httpContextAccesor,
+            IHttpContextAccessor httpContextAccessor,
             RouteGuardian routeGuardian,
             IServiceProvider serviceProvider,
-            ILogger<RouteGuardianPolicy> logger
+            ILogger<AuthorizationHandler> logger
         )
         {
-            _httpContextAccessor = httpContextAccesor;
+            _httpContextAccessor = httpContextAccessor;
             _routeGuardian = routeGuardian;
             _logger = logger;
-            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper));
-            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper));
+            _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper))!;
+            _jwtHelper = (IJwtHelper) serviceProvider.GetService(typeof(IJwtHelper))!;
         }
 
         private void LogUnauthorized(HttpContext context, string subjects)
@@ -54,7 +53,7 @@ public class RouteGuardianPolicy
             AuthorizationHandlerContext context,
             Requirement requirement)
         {
-            var httpContext = _httpContextAccessor?.HttpContext;
+            var httpContext = _httpContextAccessor.HttpContext;
 
             if (!context.User.Identity!.IsAuthenticated)
             {
@@ -67,24 +66,24 @@ public class RouteGuardianPolicy
             var authHeader = request.Headers[Const.AuthHeader].ToString();
             var subjects = string.Empty;
 
-            if (httpContext.User.Identity!.AuthenticationType != Const.Ntlm && string.IsNullOrEmpty(authHeader))
+            if (!Const.NtlmTypes.Contains(httpContext.User.Identity!.AuthenticationType!) && string.IsNullOrEmpty(authHeader))
             {
                 LogUnauthorized(httpContext, subjects);
                 context.Fail();
                 return Task.CompletedTask;
             }
 
-            if (authHeader.StartsWith(Const.BearerTokenPrefix))
-                subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
+            if (authHeader!.StartsWith(Const.BearerTokenPrefix))
+                subjects = _jwtHelper.GetSubjectsFromJwtToken(authHeader);
 
-            if (httpContext.User.Identity!.AuthenticationType == Const.Ntlm)
+            if (Const.NtlmTypes.Contains(httpContext.User.Identity!.AuthenticationType!))
                 subjects = _winHelper.GetSubjectsFromWinUserGroups(httpContext);
             
-            if (_routeGuardian.IsGranted(request!.Method, request.Path, subjects!))
+            if (_routeGuardian.IsGranted(request.Method, request.Path, subjects))
                 context.Succeed(requirement);
             else
             {
-                LogUnauthorized(httpContext, subjects!);
+                LogUnauthorized(httpContext, subjects);
                 context.Fail();
             }
 

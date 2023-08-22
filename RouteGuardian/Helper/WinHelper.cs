@@ -1,5 +1,6 @@
 ﻿using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using RouteGuardian.Extension;
 using RouteGuardian.Model;
 
@@ -10,12 +11,14 @@ namespace RouteGuardian.Helper
         // References:
         // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/windowsauth?view=aspnetcore-6.0&tabs=visual-studio#impersonation
         // https://stackoverflow.com/questions/34951713/aspnet5-windows-authentication-get-group-name-from-claims
-        
-        private Dictionary<string, WinUserGroups> _winUserGroupsCache { get; }
 
-        public WinHelper()
+        private readonly IConfiguration _config;
+        private Dictionary<string, WinUserGroups> WinUserGroupsCache { get; }
+
+        public WinHelper(IConfiguration config)
         {
-            _winUserGroupsCache = new Dictionary<string, WinUserGroups>();
+            _config = config;
+            WinUserGroupsCache = new Dictionary<string, WinUserGroups>();
         }
         
         
@@ -38,7 +41,7 @@ namespace RouteGuardian.Helper
             var cachedWinUserGroups = ReadWinUserGroupsCache(wi.Name);
             var winUserGroupsHashCode = GetWinUserGroupsHash(wi);
 
-            if (cachedWinUserGroups == null || cachedWinUserGroups?.HashCode != winUserGroupsHashCode)
+            if (cachedWinUserGroups == null || cachedWinUserGroups.HashCode != winUserGroupsHashCode)
             {
                 subjects = wi.Groups
                     .Select(g => g.Translate(typeof(NTAccount)).ToString().ToUpper())
@@ -47,7 +50,9 @@ namespace RouteGuardian.Helper
 
                 WriteWinUserGroupsCache(wi.Name, new WinUserGroups()
                 {
-                    Groups = subjects,
+                    Groups = _config[Const.WinAuthActiveDirectoryDomain] == string.Empty
+                        ? subjects
+                        : subjects.Replace(@$"{_config[Const.WinAuthActiveDirectoryDomain]}\", ""),
                     HashCode = winUserGroupsHashCode
                 });
             }
@@ -56,25 +61,25 @@ namespace RouteGuardian.Helper
                 subjects = cachedWinUserGroups.Groups;
             }
 
-            return subjects;
+            return subjects!;
         }
 
         // ----- WinUserGroupsCache -------------------------------------------
 
         public void ClearWinUserGroupsCache()
         {
-            _winUserGroupsCache.Clear();
+            WinUserGroupsCache.Clear();
         }
 
         private bool IsInWinUserGroupsCache(string username)
         {
-            return _winUserGroupsCache!.ContainsKey(username.ToUpper());
+            return WinUserGroupsCache.ContainsKey(username.ToUpper());
         }
 
         private WinUserGroups? ReadWinUserGroupsCache(string username)
         {
             return IsInWinUserGroupsCache(username)
-                ? _winUserGroupsCache[username.ToUpper()]
+                ? WinUserGroupsCache[username.ToUpper()]
                 : null;
         }
 
@@ -84,11 +89,11 @@ namespace RouteGuardian.Helper
 
             if (IsInWinUserGroupsCache(username))
             {
-                _winUserGroupsCache[username] = claims;
+                WinUserGroupsCache[username] = claims;
             }
             else
             {
-                _winUserGroupsCache.Add(username, claims);
+                WinUserGroupsCache.Add(username, claims);
             }
         }
     }
