@@ -35,17 +35,23 @@ public class RouteGuardianPolicy
 
         private void LogUnauthorized(HttpContext context, string subjects)
         {
+            var userName = context.User.Identity?.Name ?? "Unauthorized User";
+            
             _logger.LogWarning(
+                // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
                 $"Unauthorized - Access denied!\r\n[{context.Request.Method}] " +
-                $"{context.Request.Path} <- {context.User.Identity.Name} " +
+                $"{context.Request.Path} <- {userName} " +
                 $"With roles {(subjects == string.Empty ? "missing!" : subjects)}");
         }
         
         private void LogForbidden(HttpContext context)
         {
+            var userName = context.User.Identity?.Name ?? "Unauthorized User";
+            
             _logger.LogWarning(
-                $"Forbidden - Authentication failed (not authenticated)!\r\n[{context.Request.Method}] " +
-                $"{context.Request.Path} <- {context.User.Identity.Name}");
+                // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
+                "Forbidden - Authentication failed (not authenticated)!\r\n" +
+                $"[{context.Request.Method}] {context.Request.Path} <- {userName}");
         }
 
 
@@ -58,7 +64,6 @@ public class RouteGuardianPolicy
             if (!context.User.Identity!.IsAuthenticated)
             {
                 LogForbidden(httpContext!);
-                context.Fail();
                 return Task.CompletedTask;
             } 
           

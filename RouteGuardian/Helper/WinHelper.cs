@@ -46,13 +46,12 @@ namespace RouteGuardian.Helper
                 subjects = wi.Groups
                     .Select(g => g.Translate(typeof(NTAccount)).ToString().ToUpper())
                     .OrderBy(g => g)
-                    .Aggregate((g1, g2) => $"{g1}|{g2}");
+                    .Aggregate((g1, g2) => $"{g1}|{g2}")
+                    .Replace(@$"{_config[Const.WinAuthActiveDirectoryDomain]}\", "");
 
                 WriteWinUserGroupsCache(wi.Name, new WinUserGroups()
                 {
-                    Groups = _config[Const.WinAuthActiveDirectoryDomain] == string.Empty
-                        ? subjects
-                        : subjects.Replace(@$"{_config[Const.WinAuthActiveDirectoryDomain]}\", ""),
+                    Groups = subjects,
                     HashCode = winUserGroupsHashCode
                 });
             }
