@@ -5,10 +5,10 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<AssemblyVersion>1.0.3</AssemblyVersion>
-	<FileVersion>1.0.3</FileVersion>
+	<AssemblyVersion>1.0.4</AssemblyVersion>
+	<FileVersion>1.0.4</FileVersion>
 	<PackageId>RouteGuardian</PackageId>
-	<PackageVersion>1.0.3</PackageVersion>
+	<PackageVersion>1.0.4</PackageVersion>
 	<Title>RouteGuardian</Title>
 	<Description>RouteGuardian - Protects your API routes with the RouteGuardian Middleware or Authorization-Policy - heavily inspired by F3-Access</Description>
 	<Authors>MiSeeger</Authors>

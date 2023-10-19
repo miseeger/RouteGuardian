@@ -85,14 +85,14 @@ namespace RouteGuardian.Helper
         private void WriteWinUserGroupsCache(string username, WinUserGroups claims)
         {
             username = username.ToUpper();
-
-            if (IsInWinUserGroupsCache(username))
-            {
-                WinUserGroupsCache[username] = claims;
-            }
-            else
+            
+            try
             {
                 WinUserGroupsCache.Add(username, claims);
+            }
+            catch (ArgumentException)
+            {
+                WinUserGroupsCache[username] = claims;
             }
         }
     }

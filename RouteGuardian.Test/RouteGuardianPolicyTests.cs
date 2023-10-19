@@ -40,7 +40,7 @@ namespace RouteGuardian.Test
         }
         
         [TestMethod]
-        public async Task ShouldFailIfNotAuthenticated ()
+        public async Task ShouldNotSucceedIfNotAuthenticated ()
         {
             // --- Arrange
             var testUser = new ClaimsPrincipal(new ClaimsIdentity());
@@ -58,7 +58,8 @@ namespace RouteGuardian.Test
             await authHandler.HandleAsync(authContext);
 
             // --- Assert
-            Assert.IsTrue(authContext.HasFailed);
+            Assert.IsFalse(authContext.HasSucceeded);
+            Assert.IsFalse(testUser.Identity!.IsAuthenticated);
         }
 
         [TestMethod]
@@ -79,6 +80,7 @@ namespace RouteGuardian.Test
             
             // --- Assert
             Assert.IsTrue(authContext.HasFailed);
+            Assert.IsFalse(authContext.HasSucceeded);
         }
 
         [TestMethod]
@@ -101,6 +103,7 @@ namespace RouteGuardian.Test
             
             // --- Assert
             Assert.IsTrue(authContext.HasSucceeded);
+            Assert.IsFalse(authContext.HasFailed);
         }
 
         [TestMethod]
