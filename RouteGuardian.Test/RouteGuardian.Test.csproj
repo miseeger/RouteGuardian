@@ -8,11 +8,12 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="access.json" />
-    <None Remove="appsettings.json" />
-    <None Remove="global.json" />
-  </ItemGroup>
+<!--  <ItemGroup>-->
+<!--    <None Remove="access.json" />-->
+<!--    <None Remove="apikeys.json" />-->
+<!--    <None Remove="appsettings.json" />-->
+<!--    <None Remove="global.json" />-->
+<!--  </ItemGroup>-->
 
   <ItemGroup>
     <Content Include="access.json">
@@ -26,6 +27,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="global.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="apikeys.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -45,6 +51,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RouteGuardian\RouteGuardian.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="apikeys.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

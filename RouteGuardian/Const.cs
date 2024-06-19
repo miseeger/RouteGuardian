@@ -11,9 +11,8 @@
         public const string Deny = "deny";
         public const string AuthHeader = "Authorization";
         public const string BearerTokenPrefix = "Bearer ";
-        public const string NegotiateTokenPrefix = "Negotiate ";
-        public const string NtlmTokenPrefix = "Negotiation ";
-        public const string NtlmTypes = "Negotiate|NTLM";
+        public const string KerberosTokenPrefix = "Negotiate ";
+        public const string WinAuthTypes = "Negotiate|NTLM";
         public const string JwtClaimTypeRole = "rol";
         public const string JwtClaimTypeIssuedAt = "iat";
         public const string JwtClaimTypeUsername = "name";
@@ -34,5 +33,10 @@
         public const string WinAuthRegisterAdditionalGroupsFromDb = "RouteGuardian:WinAuthentication:ReigsterAdditionalGroupsFromDb";
         public const string WinAuthActiveDirectoryDomain = "RouteGuardian:WinAuthentication:ActiveDirectoryDomain"; 
         public const string GlobalException = "A global exception occurred and was logged!";
+        public const string HeaderClientId = "x-client-id";
+        public const string HeaderClientKey = "x-client-key";
+        public const string DefaultAccessFile = "access.json";
+        public const string DefaultApiKeysFile = "apikeys.json";
+        public const string ApiKeyDefaultAuthScheme = "ApiKeyAuthenticationScheme";
     }
 }

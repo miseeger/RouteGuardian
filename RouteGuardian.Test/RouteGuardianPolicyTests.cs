@@ -50,7 +50,7 @@ namespace RouteGuardian.Test
                 null); 
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx1", testUser).Object,
-                new RouteGuardian("access.json"),
+                new RouteGuardian(Const.DefaultAccessFile),
                 new ServiceProviderMock(_config!).Object,
                 _loggerMock!);
 
@@ -72,7 +72,7 @@ namespace RouteGuardian.Test
                 testUser, null); 
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx2", testUser).Object,
-                new RouteGuardian("access.json"),
+                new RouteGuardian(Const.DefaultAccessFile),
                 new ServiceProviderMock(_config!).Object, _loggerMock!);
 
             // --- Act
@@ -94,7 +94,7 @@ namespace RouteGuardian.Test
                 null); 
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx3", testUser, _jwtToken).Object,
-                new RouteGuardian("access.json"),
+                new RouteGuardian(Const.DefaultAccessFile),
                 new ServiceProviderMock(_config!).Object,
                 _loggerMock!);
 
@@ -117,7 +117,7 @@ namespace RouteGuardian.Test
                 null); 
             var authHandler = new RouteGuardianPolicy.AuthorizationHandler(
                 new HttpContextAccessorMock("ctx4", testUser, _jwtToken).Object,
-                new RouteGuardian("access.json"),
+                new RouteGuardian(Const.DefaultAccessFile),
                 new ServiceProviderMock(_config!).Object,
                 _loggerMock!);
 

@@ -20,7 +20,7 @@ namespace RouteGuardian.Middleware
             string guardedPath = "")
         {
             _next = next;
-            _routeGuardian = new RouteGuardian("access.json");
+            _routeGuardian = new RouteGuardian(Const.DefaultAccessFile);
             _guardedPath = guardedPath;
             _logger = logger;
             _winHelper = (IWinHelper) serviceProvider.GetService(typeof(IWinHelper))!;
@@ -60,15 +60,15 @@ namespace RouteGuardian.Middleware
                     var authHeader = request.Headers[Const.AuthHeader].ToString();
                     var user = context.User;
                     
-                    if (Const.NtlmTypes.Contains(user.Identity.AuthenticationType!)  
-                        || (!Const.NtlmTypes.Contains(user.Identity.AuthenticationType!) && !string.IsNullOrEmpty(authHeader)))
+                    if (Const.WinAuthTypes.Contains(user.Identity.AuthenticationType!)  
+                        || (!Const.WinAuthTypes.Contains(user.Identity.AuthenticationType!) && !string.IsNullOrEmpty(authHeader)))
                     {
                         var subjects = string.Empty;
                         
                         if (authHeader.StartsWith(Const.BearerTokenPrefix))
                             subjects = _jwtHelper?.GetSubjectsFromJwtToken(authHeader);
 
-                        if (Const.NtlmTypes.Contains(user.Identity.AuthenticationType!))
+                        if (Const.WinAuthTypes.Contains(user.Identity.AuthenticationType!))
                             subjects = _winHelper.GetSubjectsFromWinUserGroups(context);
                         
                         if (_routeGuardian.IsGranted(context.Request.Method, context.Request.Path, subjects!))

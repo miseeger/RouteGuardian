@@ -71,7 +71,7 @@ public class RouteGuardianPolicy
             var authHeader = request.Headers[Const.AuthHeader].ToString();
             var subjects = string.Empty;
 
-            if (!Const.NtlmTypes.Contains(httpContext.User.Identity!.AuthenticationType!) && string.IsNullOrEmpty(authHeader))
+            if (!Const.WinAuthTypes.Contains(httpContext.User.Identity!.AuthenticationType!) && string.IsNullOrEmpty(authHeader))
             {
                 LogUnauthorized(httpContext, subjects);
                 context.Fail();
@@ -81,7 +81,7 @@ public class RouteGuardianPolicy
             if (authHeader!.StartsWith(Const.BearerTokenPrefix))
                 subjects = _jwtHelper.GetSubjectsFromJwtToken(authHeader);
 
-            if (Const.NtlmTypes.Contains(httpContext.User.Identity!.AuthenticationType!))
+            if (Const.WinAuthTypes.Contains(httpContext.User.Identity!.AuthenticationType!))
                 subjects = _winHelper.GetSubjectsFromWinUserGroups(httpContext);
             
             if (_routeGuardian.IsGranted(request.Method, request.Path, subjects))

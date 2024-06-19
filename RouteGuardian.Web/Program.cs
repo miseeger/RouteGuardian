@@ -38,11 +38,10 @@ builder.Services.AddLocalization();
 
 // ----- Authentication and Authorization -------------------------------------
 
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-
 //builder.Services.AddWindowsAuthentication();
-builder.Services.AddJwtAuthentication(builder.Configuration);
+//builder.Services.AddJwtAuthentication(builder.Configuration);
+
+builder.Services.AddRouteGuardianApiKeyPolicy();
 
 // ===== Pipeline (Middleware) ================================================
 var app = builder.Build();
@@ -60,7 +59,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseRouteGuardian("/api");
+// app.UseRouteGuardian("/api");
 
 app.MapControllers();
 

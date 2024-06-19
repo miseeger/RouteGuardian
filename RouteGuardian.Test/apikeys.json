@@ -1,0 +1,32 @@
+{
+  "ApiKeys": [
+    {
+      "ClientName": "ApiClientWithInValidKey",
+      "ClientId": "6a3ffb74-b1bc-455c-8628-e9f300d934e3",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "xO3O00@(W}?)k.XG£9G'/uX23nM/?$RqF)nktn4<xi~9pq.£bA",
+          "ValidUntil": "2023-12-31T23:59:59"
+        }
+      ]
+    },
+    {
+      "ClientName": "ApiClientWithValidKey",
+      "ClientId": "043a8b62-5ddc-470e-a5ff-1ee2d1e303df",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "4'AM]zD2G)Z.7/+6d'S@/0&PoAv.]Q6Q.qci|ND,oi9z029H?X",
+          "ValidUntil": "2099-12-31T23:59:59"
+        }
+      ]
+    }
+  ]
+}

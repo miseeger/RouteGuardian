@@ -11,7 +11,7 @@ namespace RouteGuardian
         public List<GuardRule> Rules { get; }
 
 
-        public RouteGuardian(string accessFileName = "")
+        public RouteGuardian(string accessFileName = "access.json")
         {
             Policy = GuardPolicy.Deny;
             Rules = new List<GuardRule>();

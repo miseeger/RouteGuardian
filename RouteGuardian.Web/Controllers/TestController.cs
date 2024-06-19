@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RouteGuardian.Web.Controllers
@@ -16,6 +17,14 @@ namespace RouteGuardian.Web.Controllers
         public ActionResult Test() 
         {
             return Ok("Tested!");
+        }
+        
+        [HttpGet("KeyTest")]
+        [Authorize(Policy = "RouteGuardianApiKey")]
+        public ActionResult KeyTest()
+        {
+            var client = User.Claims.FirstOrDefault(c => c.Type == "ClientName");
+            return Ok($"Access for API client {client?.Value} is granted.");
         }
     }
 

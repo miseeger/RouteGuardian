@@ -6,6 +6,7 @@
     "allow * /admin ADMIN|PROD",
     "deny * /admin/part2 *",
     "allow GET /api/test/test ADmin",
+    "allow GET /api/test/keytest ADMIN|ApiClientWithValidKey",
     "allow GeT /api/foo PROD",
     "deny get /api/test/xyz admin"
   ] 
