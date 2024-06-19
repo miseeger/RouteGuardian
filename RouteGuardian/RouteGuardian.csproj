@@ -13,7 +13,7 @@
 	<Description>RouteGuardian - Protects your API routes with the RouteGuardian Middleware or Authorization-Policy - heavily inspired by F3-Access</Description>
 	<Authors>MiSeeger</Authors>
 	<Copyright>2022 - 2024 MiSeeger</Copyright>
-	<PackageTags>ASP.NET Core Middleware Security Authorization Policy MinimalAPI WebApi Controllers</PackageTags>
+	<PackageTags>ASP.NET Core Middleware Security API-Key-Security Authentication Authorization Policy MinimalAPI WebApi Controllers</PackageTags>
 	<PackageIcon>RouteGuardianLogo_xxs.png</PackageIcon>
 	<PackageProjectUrl>https://github.com/miseeger/RouteGuardian</PackageProjectUrl>
 	<PackageLicenseUrl>https://github.com/miseeger/RouteGuardian/blob/main/LICENSE</PackageLicenseUrl>
