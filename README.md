@@ -9,8 +9,11 @@ RouteGuardian checks rules that are set up for resource-based authorization and,
 
 1) as Middleware - `RouteGuardianMiddleware`
 2) as Authorization-Policy - `RouteGuardianPolicy`
+3) as ApiKey-Policy - `RouteGuardianApiKeyPolicy`
 
 The RouteGuardian middleware and policy are fundamentally designed for a group-based authorization scenario that supports both JWT authentication and authorization and Windows authentication and authorization (via Windows user groups). When using the basic functionality of RouteGuardian, the verification policies can be implemented as required.
+
+Apis can be fundamentally secured for system-side access using the ApiKey policy with Api-Keys. The RouteGuardian takes over the fine control of access.
 
 In addition, RouteGuardian provides a JwtHelper for Webtoken processing and a WinHelper for processing AD group authorizations from Windows Authentication. The latter also implements a GroupsCache for WinAuth.
 

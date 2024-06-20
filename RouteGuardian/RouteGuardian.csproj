@@ -19,7 +19,7 @@
 	<PackageLicenseUrl>https://github.com/miseeger/RouteGuardian/blob/main/LICENSE</PackageLicenseUrl>
 	<RepositoryUrl>https://github.com/miseeger/RouteGuardian</RepositoryUrl>
 	<RepositoryType>GIT</RepositoryType>
-	<PackageReleaseNotes>Improvements and corrections for Windows Authentication</PackageReleaseNotes>
+	<PackageReleaseNotes>Introduction of API-Key Security for API endpoints</PackageReleaseNotes>
 	<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
     
