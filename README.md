@@ -534,4 +534,3 @@ The only string extension in this library provides the computation of a MD5 hash
 ## License terms
 
 This software is developed and maintained by [Michael Seeger](https://github.com/miseeger), in Germany, with :heart:. Licensed under [MIT](https://github.com/miseeger/RouteGuardian/blob/main/LICENSE).
-~~~~

@@ -60,9 +60,9 @@ Ein Beispiel für den Einsatz von `*` als Wildcard könnte so aussehen:
 
 ```c#
 var routeGuardian = new RouteGuardian()
-	.Allow("*", "/admin*", "ADMIN")                 // (1)
+    .Allow("*", "/admin*", "ADMIN")                 // (1)
     .Allow("*", "/public*, "*")                     // (2)    
-	.Allow("*", "/*/edit", "ADMIN")                 // (3)
+    .Allow("*", "/*/edit", "ADMIN")                 // (3)
 ```
 
 Auch hier ist die Default Policy auf `deny` gestellt und somit wirken sich die definierten Regeln wie folgt aus:
