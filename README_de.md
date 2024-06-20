@@ -363,7 +363,7 @@ public class MyController : Controller
 
 ## RouteGuardianMiddleware
 
-Die RouteGuardian Middleware wird in die Pipeline zwischen Authentication- und Authorization-Middleware und noch vor der Mapping-Middleware für die Controller gesetzt. Diese Konfiguration wird wie bei der Policy in der `Program.cs` vorgenommen.
+Die RouteGuardian Middleware wird in die Pipeline nach der Authentication- und Authorization-Middleware und noch vor der Mapping-Middleware für die Controller gesetzt. Diese Konfiguration wird wie bei der Policy in der `Program.cs` vorgenommen.
 
 Die Einbindung geschieht z. B. wie folgt:
 
@@ -393,6 +393,106 @@ app.Run();
 Die einzige Information, die die RouteGuardian Middleware für die Konfiguration benötigt, ist der Basispfad der zu schützenden Endpunkte, hier "/api". Die zu berücksichtigenden Regeln werden beim Starten der Anwendung aus der Definitionsdatei mit dem Namen `access.json`  gelesen (siehe weiter oben).
 
 > Wird die RouteGuardianMiddleware in einer Anwendung verwendet, benötigt man keine RouteGuardianPolicy.
+
+## RouteGuardianApiKeyPolicy
+
+Für die Absicherung von API-Endpunkten durch vergebene API-Keys, kann die `RouteGuardianApiKeyPolicy` eingesetzt werden. Ihr zugrunde liegt ein Keyvault, welches in einer JSON Konfigurationsdatei namens `apikeys.json` in folgender Struktur abgelegt wird:
+
+```json
+{
+  "ApiKeys": [
+    {
+      "ClientName": "ApiClientWithInValidKey",
+      "ClientId": "6a3ffb74-b1bc-455c-8628-e9f300d934e3",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "xO3O00@(W}?)k.XG£9G'/uX23nM/?$RqF)nktn4<xi~9pq.£bA",
+          "ValidUntil": "2023-12-31T23:59:59"
+        }
+      ]
+    },
+    {
+      "ClientName": "ApiClientWithValidKey",
+      "ClientId": "043a8b62-5ddc-470e-a5ff-1ee2d1e303df",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "4'AM]zD2G)Z.7/+6d'S@/0&PoAv.]Q6Q.qci|ND,oi9z029H?X",
+          "ValidUntil": "2099-12-31T23:59:59"
+        }
+      ]
+    }
+  ]
+}
+```
+Das Root-Element `ApiKeys` repräsentiert hierbei das Keyvault, welches ein Array von Clients (Anwendungen) mit Zugriffsinformationen und Keys mit Gültigkeitsdatum enthält. Ein Client ist ein teilnehmendes System, welches kontrolliert auf API-Endpunkte zugreift. Über einen erteilten Schlüssel wird der Client zunächst grundlegend für den Zugriff autorisiert. Die nächste Stufe prüft die IP-Adresse des Anfragenden. Diese muss beim Client hinterlegt sein, um Zugriff zu erhalten. Die finale Stufe der Absicherung der API ist ein gültiger Zugriffs-Schlüssel. Jeder Schlüssel ist mit einem Ablaufdatum versehen. Ist dieses überschritten, kann er nicht mehr zum Zugriff verwendet werden. Nach dem Bestehen dieser Prüfungen kann über die Zugriffsregeln des RouteGuardian feingeregelt werden. Diese sind standardmäßig in der Datei `access.json` definiert (siehe weiter oben). Dabei wird als Subject der `ClientName` des jeweils zu berechtigenden Clients angegeben:
+```json
+{
+  "default": "deny",
+  "rules": [
+    ...
+    "allow GET /api/test/keytest ADMIN|ApiClientWithValidKey",
+    ...
+  ] 
+}
+```
+Hier hätte, neben einem Benutzer in der Rolle "ADMIN", der Client mit der ID `043a8b62-5ddc-470e-a5ff-1ee2d1e303df` ("ApiClientWithValidKey") Zugriff auf den Endpunkt `/api/test/keytest`.
+
+Die Einbindung geschieht z. B. wie folgt:
+
+```c#
+using RouteGuardian.Extension;
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+...
+
+builder.Services.AddRouteGuardianApiKeyPolicy();    
+
+// ===== Pipeline (Middleware) ================================================
+var app = builder.Build();
+
+...
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+```
+
+Die Endpunkte einer API werden durch folgendes Attribut mit der `RouteGuardianApiKeyPolicy` abgesichert:
+
+
+```c#
+[HttpGet("KeyTest")]
+[Authorize(Policy = "RouteGuardianApiKey")]
+public ActionResult KeyTest()
+{
+    var client = User.Claims.FirstOrDefault(c => c.Type == "ClientName");
+    return Ok($"Access for API client {client?.Value} is granted.");
+}
+```
+
+Dem HTTP-Request wird für den Aufruf eines Endpunkts im Header die `ClientId` und der gültige `ClientKey` in den Header-Attributen `x-client-id` und `x-client-key` mitgegegen.
+
+```http
+GET  https://localhost:7183/api/test/keytest
+x-client-id: 043a8b62-5ddc-470e-a5ff-1ee2d1e303df
+x-client-key: 4'AM]zD2G)Z.7/+6d'S@/0&PoAv.]Q6Q.qci|ND,oi9z029H?X
+```
+
+### ApiKeyAuthenticationHandler
+Voraussetzung für das Funktionieren der APIKey-Policy ist die Authentifizierung des anfragenden Benutzers (hier: Clients). Der Handler innerhalb der Extension-Method `AddRouteGuardianApiKeyPolicy()` in die Authentifizierung eingebunden.  
+Hierzu wird die dem RouteGurardian eigene Token-Authentifizierung über den eingebundenen `ApiKeyAuthenticationHandler` genutzt. Dieser prüft die Existenz eines registrierten Clients aus dem notwendigerweise angegebenen Authentication-Token (`x-client-id`, s. o.) und stellt dessen angegebenen `ClientName` in einen gleichnamigen Claim einer `ClaimsIdentity`. Im Beispielcode des `KeyTest`-Endpunkts wird gezeigt wie man den Namen eines Authentifizieren Clients ermitteln kann.
 
 ## Extras
 

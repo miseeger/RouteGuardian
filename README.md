@@ -396,6 +396,108 @@ The only information that the RouteGuardian middleware needs for the configurati
 
 > If the RouteGuardianMiddleware is used in an application, no RouteGuardianPolicy is needed.
 
+## RouteGuardianApiKeyPolicy
+
+The `RouteGuardianApiKeyPolicy` can be used to secure API endpoints by assigning API keys. It is based on a keyvault, which is stored in a JSON configuration file called `apikeys.json` in the following structure:
+
+```json
+{
+  "ApiKeys": [
+    {
+      "ClientName": "ApiClientWithInValidKey",
+      "ClientId": "6a3ffb74-b1bc-455c-8628-e9f300d934e3",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "xO3O00@(W}?)k.XG£9G'/uX23nM/?$RqF)nktn4<xi~9pq.£bA",
+          "ValidUntil": "2023-12-31T23:59:59"
+        }
+      ]
+    },
+    {
+      "ClientName": "ApiClientWithValidKey",
+      "ClientId": "043a8b62-5ddc-470e-a5ff-1ee2d1e303df",
+      "IpAddresses": [
+        "0.0.0.0",
+        "127.0.0.1"
+      ],
+      "Keys": [
+        {
+          "Secret": "4'AM]zD2G)Z.7/+6d'S@/0&PoAv.]Q6Q.qci|ND,oi9z029H?X",
+          "ValidUntil": "2099-12-31T23:59:59"
+        }
+      ]
+    }
+  ]
+}
+```
+The root element `ApiKeys` represents the keyvault, which contains an array of clients (applications) with access information and keys with validity dates. A client is a participating system that accesses API endpoints in a controlled manner. The client is first given basic authorization for access via an issued key. The next stage checks the IP address of the requesting party. This must be stored with the client in order to gain access. The final stage in securing the API is a valid access key. Each key has an expiration date. Once this date has passed, it can no longer be used for access. Once these checks have been passed, the RouteGuardian will be used to fine-tune the endpoint-access. The rules are defined by default in the `access.json` file (see above). The `ClientName` of the client to be authorized is then used as the subject:
+
+```json
+{
+  "default": "deny",
+  "rules": [
+    ...
+    "allow GET /api/test/keytest ADMIN|ApiClientWithValidKey",
+    ...
+  ] 
+}
+```
+Here, in addition to a user in the "ADMIN" role, the client with the ID `043a8b62-5ddc-470e-a5ff-1ee2d1e303df` ("ApiClientWithValidKey") would have access to the endpoint `/api/test/keytest`.
+
+To further secure access for the client, IP addresses are stored from which access to the released endpoints of an API is permitted. A final and additional and last step in securing the API is to secure the access keys with a validity date. If the validity of the keys has expired, they can no longer be used.
+
+The integration is done as follows, for example:
+
+```c#
+using RouteGuardian.Extension;
+// ===== Services =============================================================
+var builder = WebApplication.CreateBuilder(args);
+
+...
+
+builder.Services.AddRouteGuardianApiKeyPolicy();    
+
+// ===== Pipeline (Middleware) ================================================
+var app = builder.Build();
+
+...
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+```
+
+The endpoints of an API are secured by the following attribute with the `RouteGuardianApiKeyPolicy`:
+
+```c#
+[HttpGet("KeyTest")]
+[Authorize(Policy = "RouteGuardianApiKey")]
+public ActionResult KeyTest()
+{
+    var client = User.Claims.FirstOrDefault(c => c.Type == "ClientName");
+    return Ok($"Access for API client {client?.Value} is granted.");
+}
+```
+
+The HTTP request is accompanied by the `ClientId` and the valid `ClientKey` in the header attributes `x-client-id` and `x-client-key` for calling an endpoint.
+
+```http
+GET  https://localhost:7183/api/test/keytest
+x-client-id: 043a8b62-5ddc-470e-a5ff-1ee2d1e303df
+x-client-key: 4'AM]zD2G)Z.7/+6d'S@/0&PoAv.]Q6Q.qci|ND,oi9z029H?X
+```
+
+### ApiKeyAuthenticationHandler
+The prerequisite for the APIKey policy to function is the authentication of the requesting users (here: clients). The handler within the extension method `AddRouteGuardianApiKeyPolicy()` is integrated into the authentication.  
+For this purpose, the RouteGurardian's own token authentication is used via the integrated `ApiKeyAuthenticationHandler`. This checks the existence of a registered client from the necessarily specified authentication token (`x-client-id`, see above) and places its specified `ClientName` in a claim of the same name in a `ClaimsIdentity`. The sample code of the `KeyTest` endpoint shows how to determine the name of an authentication client.
+
 ## Extras
 
 The RouteGuardian library comes with a few goodies that don't necessarily belong in the context of securing API routes, but could be useful for a (web) application.
@@ -429,6 +531,7 @@ app.Run();
 
 The only string extension in this library provides the computation of a MD5 hash string. It extends the string type with the method `ComputeMd5(string)`. It is used in RouteGuardian when hashing the AD permission groups for the `WinUserGroupsCache`.
 
-## Lizenzbedingungen
+## License terms
 
-Diese Software wird von [Michael Seeger](https://github.com/miseeger), in Deutschland, mit :heart: entwickelt und betreut. Lizensiert unter [MIT](https://github.com/miseeger/RouteGuardian/blob/main/LICENSE).
+This software is developed and maintained by [Michael Seeger](https://github.com/miseeger), in Germany, with :heart:. Licensed under [MIT](https://github.com/miseeger/RouteGuardian/blob/main/LICENSE).
+~~~~
